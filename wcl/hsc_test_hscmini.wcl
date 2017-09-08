@@ -10,7 +10,7 @@ blocklist = processccd, drp-patch
 target_site = slsstdev
 campaign = MDEV
 pipeline = hscmini
-pipeprod = mgstack   
+pipeprod = mgstack
 #pipever = w_2017_14
 pipever = w_2017_33
 
@@ -40,7 +40,7 @@ verify_files = False
 
 # different blocks can have different job parallelism
 <block>
-    <processccd>                  
+    <processccd>
         modulelist = processccd
         divide_jobs_by = ccd, filter
     </processccd>
@@ -61,8 +61,8 @@ verify_files = False
 
             # open provenance model
             used = file.butler_template,file.butler_registry_raw,file.butler_registry_calib,file.schema_src,file.schema_icsrc,file.bf,file.raw,file.biascor,file.dflatcor,file.darkcor,file.ref_cat
-            was_generated_by = file.cat_corr_src, file.img_corr 
-            # ancestry = 
+            was_generated_by = file.cat_corr_src, file.img_corr
+            # ancestry =
 
             <cmdline>
                 _01 = ${job_repo_dir}
@@ -79,8 +79,8 @@ verify_files = False
                 filetype = cal_biascor_hsc
                 output_fields = filename, calib_date, ccd
                 match = ccd
-    
-                dirpat = lsst_calib 
+
+                dirpat = lsst_calib
                 calibtype = BIAS
             </biascor>
             <dflatcor>
@@ -101,7 +101,7 @@ verify_files = False
                 output_fields = filename, calib_date, ccd
                 match = ccd
 
-                dirpat = lsst_calib 
+                dirpat = lsst_calib
                 calibtype = DARK
             </darkcor>
             <bf>
@@ -126,10 +126,10 @@ verify_files = False
                 #output_fields = filename,visit,filter,ccd,pointing,overlap.tract,field,dateobs
                 output_fields = filename,visit,filter,ccd,pointing,tract,field,dateobs
 
-                #  
+                #
                 match = visit, filter, ccd, pointing
 
-                # how to put files in job scratch directory 
+                # how to put files in job scratch directory
                 dirpat = hsc_raw
                 rename_file = HSC-${visit:7}-${ccd:3}.fits     # Butler requires file to have a different name
             </raw>
@@ -253,7 +253,7 @@ verify_files = False
                 # how to name input file
                 filename = ${fn_butler_template}
 
-                # where to put it 
+                # where to put it
                 dirpat = generic_norepo
                 job_enddir = config
             </butler_template>
@@ -311,7 +311,7 @@ verify_files = False
                 columns = img_corr.fullname, tract, patch, visit, ccd, filter
 
                 # what to name the list file
-                filepat = list_tract_patch_visit_filter 
+                filepat = list_tract_patch_visit_filter
                 flabel = ${modulename}_corr
                 fsuffix = list
 
@@ -375,7 +375,7 @@ verify_files = False
                 filetype = deepcoadd
 
                 # how to name output file
-                ### changed in obs_base/policy/exposures.yaml 
+                ### changed in obs_base/policy/exposures.yaml
                 filepat = hsc_tract_patch_filter
                 flabel = deepCoadd
                 fsuffix = fits
@@ -423,7 +423,7 @@ verify_files = False
                 columns = img_corr.fullname, tract, patch, visit, ccd, filter
 
                 # what to name the list
-                filepat = list_tract_patch_filter 
+                filepat = list_tract_patch_filter
                 flabel = ${modulename}_corr
                 fsuffix = list
 
@@ -440,7 +440,7 @@ verify_files = False
                 columns = tempexp.fullname, tract, patch, visit, filter
 
                 # what to name the list
-                filepat = list_tract_patch_filter 
+                filepat = list_tract_patch_filter
                 flabel = ${modulename}_tempexp
                 fsuffix = list
 
@@ -849,7 +849,7 @@ verify_files = False
             </butler_template>
             <deepcoadd_meas>
                 listonly = true
-                
+
                 # where to put it
                 dirpat = hsc_tract_patch_filter
                 job_outtype = deepCoadd-results
@@ -1016,7 +1016,7 @@ verify_files = False
         wrappername = genwrap_lsst.py
         modnamepat = ${modnamepat_tract_visit_ccd_filter}
         loopobj = file.img_corr
-        #wrapperloop = 
+        #wrapperloop =
         <file>
             ### inputs
             <butler_registry_raw>
@@ -1049,7 +1049,7 @@ verify_files = False
                 job_enddir = deepCoadd
             </skymap>
             <config_forcedphotccd>
-                filename = forcedPhotCcdConfig-${config_version}.py 
+                filename = forcedPhotCcdConfig-${config_version}.py
                 dirpat = generic_norepo
                 job_enddir = config
             </config_forcedphotccd>
@@ -1108,12 +1108,12 @@ verify_files = False
 </filename_pattern>
 <directory_pattern>
     <lsst_calib>
-        #ops = 
+        #ops =
         runtime = ${job_repo_dir}/CALIB/${calibtype}/${calib_date}/NONE
     </lsst_calib>
     <lsst_calib_filter>
-        #ops = 
-        runtime = ${job_repo_dir}/CALIB/${calibtype}/${calib_date}/${filter} 
+        #ops =
+        runtime = ${job_repo_dir}/CALIB/${calibtype}/${calib_date}/${filter}
     </lsst_calib_filter>
     <hsc_raw>
         #ops = MTN/HSC/${dateobs}/${visit}
