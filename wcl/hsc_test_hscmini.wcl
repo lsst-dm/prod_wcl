@@ -1,0 +1,1213 @@
+<<include lsstdev.des>>       # my information (e.g., email address) and some machine definitions.
+
+# using pre-existing butler registry files
+
+reqnum = 15                   # a processing request number 
+jira_id = DM-10701            # points to a jira_id describing the processing request
+tract = 0                     # which tract to process
+
+blocklist = processccd, drp-patch
+target_site = slsstdev
+campaign = MDEV
+pipeline = hscmini
+pipeprod = mgstack   
+#pipever = w_2017_14
+pipever = w_2017_28
+
+
+dataset = ci_hsc               # used in names of butler registry files
+overlap_version = ci_hsc-v2
+#config_version = w_2017_14-v2     # what version of configs to use
+#skymap_version = w_2017_14-v2     # what version of skymap to use
+config_version = w_2017_28-v1     # what version of configs to use
+skymap_version = w_2017_28-v1     # what version of skymap to use
+fn_refcat_tarball = ps1_pv3_3pi_20170110.tar   # what reference catalog to use
+fn_butler_template = butler_templates-${config_version}.yaml
+fn_butler_registry_raw = ${dataset}_registry-${config_version}.sqlite3
+fn_butler_registry_calib = ${dataset}_calibRegistry-${config_version}.sqlite3
+
+job_repo_dir = jobrepo
+ops_run_dir = ${project}/${pipeline}/${campaign}/r${reqnum}/${unitname}/p${attnum:2}
+camsym = H    # camera symbol
+unitname=${camsym}t${tract}    # reqnum + unitname + attnum must be unique every submission
+
+# these 2 are for debugging purposes
+purge_job_dir = never
+compress_cleanup = False
+
+use_qcf = True  # turning off the DESDM QCFramework as wasn't set up correctly in environment.  Need to investigate
+verify_files = False
+
+# different blocks can have different job parallelism
+<block>
+    <processccd>                  
+        modulelist = processccd
+        divide_jobs_by = ccd, filter
+    </processccd>
+    <drp-patch>
+        modulelist = make_coadd_temp_exp, assemble_coadd, detect_coadd_sources, merge_coadd_detections, measure_coadd_sources, merge_coadd_measurements, forced_phot_coadd
+        divide_jobs_by = patch
+    </drp-patch>
+    #<drp-tract>
+    #    modulelist = forced_phot_ccd
+    #</drp-tract>
+</block>
+
+<module>
+    <processccd>
+        <exec_1>
+            execname = processCcd.py
+            cmd_hyphen = mixed_gnu  # use single hyphen for single char options and double hyphen for multiple char options
+
+            # open provenance model
+            used = file.butler_template,file.butler_registry_raw,file.butler_registry_calib,file.schema_src,file.schema_icsrc,file.bf,file.raw,file.biascor,file.dflatcor,file.darkcor,file.ref_cat
+            was_generated_by = file.cat_corr_src, file.img_corr 
+            # ancestry = 
+
+            <cmdline>
+                _01 = ${job_repo_dir}
+                #calib = ${job_repo_dir}
+                output = ${job_repo_dir}
+                doraise = _flag
+                id = visit=${visit} ccd=${ccd}
+            </cmdline>
+        </exec_1>
+        <file>
+            <biascor>
+                query_table = calibration
+                query_fields = filetype
+                filetype = cal_biascor_hsc
+                output_fields = filename, calib_date, ccd
+                match = ccd
+    
+                dirpat = lsst_calib 
+                calibtype = BIAS
+            </biascor>
+            <dflatcor>
+                query_table = calibration
+                query_fields = filetype
+                filetype = cal_dflatcor_hsc
+                output_fields = filename, calib_date, filter, ccd
+                match = filter, ccd
+
+                #BROKEN filename = FLAT-${calibdate}-${filter}-${ccd:3}.fits
+                dirpat = lsst_calib_filter
+                calibtype = FLAT
+            </dflatcor>
+            <darkcor>
+                query_table = calibration
+                query_fields = filetype
+                filetype = cal_darkcor_hsc
+                output_fields = filename, calib_date, ccd
+                match = ccd
+
+                dirpat = lsst_calib 
+                calibtype = DARK
+            </darkcor>
+            <bf>
+                filename = brighter_fatter_kernel.pkl
+                dirpat = lsst_bf
+            </bf>
+            <ref_cat>
+                # reference catalog is a small set of files, so managing it as tarball
+                filename = ${fn_refcat_tarball}
+                dirpat = generic_repo
+                job_enddir = ref_cats
+            </ref_cat>
+            <raw>
+                # how to get data
+                exec = hsc_dummy_query_raw.py
+                #args = --qoutfile ${qoutfile} --tract ${tract} --tractinfo ${tractinfo} --section ${submit_des_db_section}
+                args = --qoutfile ${qoutfile} --tract ${tract} --section ${submit_des_db_section} --overlap_version ${overlap_version}
+                #query_table = image
+                #query_fields = filetype, overlap.tract
+                #join = image.visit=overlap.visit, image.ccd=overlap.ccd
+                filetype = hsc_raw
+                #output_fields = filename,visit,filter,ccd,pointing,overlap.tract,field,dateobs
+                output_fields = filename,visit,filter,ccd,pointing,tract,field,dateobs
+
+                #  
+                match = visit, filter, ccd, pointing
+
+                # how to put files in job scratch directory 
+                dirpat = hsc_raw
+                rename_file = HSC-${visit:7}-${ccd:3}.fits     # Butler requires file to have a different name
+            </raw>
+            <schema_src>
+                filename = schema-src-${config_version}.fits
+                rename_file = src.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_src>
+            <schema_icsrc>
+                filename = schema-icSrc-${config_version}.fits
+                rename_file = icSrc.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_icsrc>
+            <butler_registry_raw>
+                # how to name input file
+                filename = ${fn_butler_registry_raw}
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                rename_file = registry.sqlite3
+                dirpat = generic_norepo
+                job_enddir = ${job_repo_dir}
+            </butler_registry_raw>
+            <butler_registry_calib>
+                # how to name input file
+                filename = ${fn_butler_registry_calib}
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                rename_file = calibRegistry.sqlite3
+                dirpat = generic_norepo
+                job_enddir = ${job_repo_dir}
+            </butler_registry_calib>
+            <butler_template>
+                # how to name input file
+                filename = ${fn_butler_template}
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                dirpat = generic_norepo
+                job_enddir = config
+            </butler_template>
+            <cat_corr_src>
+                #"peg/00671/HSC-I/output/SRC-0903986-016.fits" link="output"/>
+                # what metadata to save
+                filetype = cat_corr_src
+
+                # how to name output file
+                filepat = hsc_visit_ccd
+                flabel = SRC
+                fsuffix = fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                dirpat = hsc_ccd
+                ops_enddir = cat
+                job_enddir = output
+            </cat_corr_src>
+            <img_corr>
+                # what metadata to save
+                filetype = img_corr
+
+                # how to name output file
+                filepat = hsc_visit_ccd
+                flabel = CORR
+                fsuffix = fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it (jobroot=job_enddir, archive=ops_enddir)
+                dirpat = hsc_ccd
+                ops_enddir = img
+                job_enddir = corr
+            </img_corr>
+        </file>
+        <wrapper>
+            job_repo_dir = ${job_repo_dir}
+            mapper = lsst.obs.hsc.HscMapper                     # what mapper to use
+            butler_template = ${file.butler_template.fullname}  # what file entry is the butler template (so we're not hardcoding section name)
+            untar_files = ${file.ref_cat.fullname}              # need to untar reference catalog
+        </wrapper>
+        wrappername = genwrap_lsst.py
+        wrapperloop = visit,filter,ccd, pointing   # filter included here so can match dflatcor on it (pointing for output paths)
+        loopobj = file.raw   # what file to use to determine wrapper loop values
+        modnamepat = ${modnamepat_tract_visit_ccd_filter}
+    </processccd>
+    <make_coadd_temp_exp>
+        <exec_1>  # label telling wrapper that this is the 1st exec to run
+            # example command line:   makeCoaddTempExp.py jobrepo --output jobrepo --id tract=0 patch=8x7 filter=HSC-I --doraise -c doApplyUberCal=False --selectId visit=904010 ccd=10 --selectId visit=904010 ccd=4
+
+            execname = makeCoaddTempExp.py   # what executable to run (must be in path inside compute job)
+
+            cmd_hyphen = mixed_gnu  # use single hyphen for single char options and double hyphen for multiple char options
+            <cmdline>
+                _01 = ${job_repo_dir}   # positional argument
+                output = ${job_repo_dir}
+                id = tract=${tract} patch=${patch} filter=${filter}
+                doraise = _flag    # option is a flag
+                c = doApplyUberCal=False
+            </cmdline>
+
+            # open provenance model (minus was_derived_from)
+            used = list.corr.img_corr, file.skymap, file.butler_registry_raw, file.butler_template
+            was_generated_by = file.deepcoadd_tempexp
+        </exec_1>
+        <file>
+            <butler_registry_raw>    # generated by first step in pipeline
+                # how to name input file
+                filename = ${fn_butler_registry_raw}
+
+                # where to put it (jobroot=job_enddir, archive=ops_enddir)
+                dirpat = generic_norepo
+                rename_file = registry.sqlite3     # Butler requires it to be this filename (note: not unique)
+                job_enddir = ${job_repo_dir}
+            </butler_registry_raw>
+            <butler_template>    # File containing patterns to create unique filenames.   Used to create Butler config
+                # how to name input file
+                filename = ${fn_butler_template}
+
+                # where to put it 
+                dirpat = generic_norepo
+                job_enddir = config
+            </butler_template>
+            <skymap>
+                filename = skyMap-${skymap_version}.pickle
+                rename_file = skyMap.pickle   # science code requires this filename (note: not unique)
+                dirpat = generic_repo
+                job_enddir = deepCoadd
+            </skymap>
+            <img_corr>
+                listonly = True   # what files already determined in list section.
+                                  # this tells framework where to put the files (as opposed to the list itself)
+
+                # where to put it (jobroot=job_enddir, archive=ops_enddir)
+                dirpat = hsc_ccd
+                ops_enddir = img
+                job_enddir = corr
+            </img_corr>
+
+            ### output files
+            <deepcoadd_tempexp>
+                # what metadata to save
+                filetype = deepcoadd_tempexp
+
+                # how to name output file
+                filepat = hsc_tract_patch_visit_filter
+                flabel = warp
+                fsuffix = fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                # inside jobroot must match Butler template definition for this type (so sync problem)
+                dirpat = hsc_tract_patch_filter
+                ops_enddir = coadd
+                job_outtype = deepCoadd
+            </deepcoadd_tempexp>
+        </file>
+        <list>
+            <corr>
+                # how to get list data
+                #exec = hsc_dummy_query_corr.py
+                #args = --section ${submit_des_db_section} --tractinfo ${tractinfo} --tract ${tract} --qoutfile ${qoutfile} --pfw_attempt_id ${query_pfw_attempt_id}
+
+                query_table = image
+                query_fields = filetype, overlap.tract, pfw_attempt_id
+                join = image.visit=overlap.visit, image.ccd=overlap.ccd
+                filetype = img_corr
+                output_fields = filename,visit,filter,ccd,pointing,overlap.tract,overlap.patch
+
+                # how to create lists
+                divide_by = tract, patch, visit, filter      # define_quanta
+                columns = img_corr.fullname, tract, patch, visit, ccd, filter
+
+                # what to name the list file
+                filepat = list_tract_patch_visit_filter 
+                flabel = ${modulename}_corr
+                fsuffix = list
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                dirpat = generic_norepo
+                ops_enddir = list/${modulename}
+                rundir = list/${modulename}
+            </corr>
+        </list>
+        <wrapper>   # wrapper specific values
+            per_file_cmdline = list.corr.img_corr:--selectId visit=$(visit) ccd=$(ccd)    # new: wrapper adds one of these for each file in list.corr.img_corr
+            job_repo_dir = ${job_repo_dir}
+            mapper = lsst.obs.hsc.HscMapper    # which butler mapper to use, needed to set up Butler
+            butler_template = ${file.butler_template.fullname} # needed to set up Butler, per_file_cmdline, etc
+        </wrapper>
+        wrappername = genwrap_lsst.py  # needed a lsst specific wrapper in order to set up Butler
+        wrapperloop = tract,patch,visit,filter   # define_quanta (how many times to we run this)
+        loopobj = list.corr   # what data is used along with wrapperloop
+        modnamepat = ${modnamepat_tract_patch_visit_filter}  # how to name internal files like wrapper wcl and log files
+    </make_coadd_temp_exp>
+    <assemble_coadd>
+        <exec_1>
+            execname = assembleCoadd.py
+            cmd_hyphen = mixed_gnu  # use single hyphen for single char options and double hyphen for multiple char options
+            <cmdline>
+                _01 = ${job_repo_dir}
+                output = ${job_repo_dir}
+                id = tract=${tract} patch=${patch} filter=${filter}
+                doraise = _flag
+            </cmdline>
+            used = file.butler_template, file.butler_registry_raw, file.skymap, list.corr.img_corr, list.tempexp.tempexp
+            was_generated_by = file.deepcoadd
+        </exec_1>
+        <wrapper>
+            per_file_cmdline = list.corr.img_corr:--selectId visit=$(visit) ccd=$(ccd)
+            job_repo_dir = ${job_repo_dir}
+            mapper = lsst.obs.hsc.HscMapper
+            butler_template = ${file.butler_template.fullname}
+        </wrapper>
+        wrappername = genwrap_lsst.py
+        modnamepat = ${modnamepat_tract_patch_filter}
+        loopobj = list.corr
+        wrapperloop = tract, patch, filter
+        <file>
+            <tempexp>
+                listonly = true
+
+                # where to put it
+                dirpat = hsc_tract_patch_filter
+                job_outtype = deepCoadd
+            </tempexp>
+            <img_corr>
+                listonly = True
+
+                # where to put it
+                dirpat = hsc_ccd
+                job_enddir = corr
+            </img_corr>
+            <deepCoadd>
+                # what metadata to save
+                filetype = deepcoadd
+
+                # how to name output file
+                ### changed in obs_base/policy/exposures.yaml 
+                filepat = hsc_tract_patch_filter
+                flabel = deepCoadd
+                fsuffix = fits
+                ##filename = ${patch}.fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it
+                dirpat = generic_repo
+                ops_enddir = coadd
+                job_enddir = deepCoadd/${filter}/${tract}
+            </deepCoadd>
+            <butler_registry_raw>
+                # how to name input file
+                filename = ${fn_butler_registry_raw}
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                rename_file = registry.sqlite3
+                dirpat = generic_norepo
+                job_enddir = ${job_repo_dir}
+            </butler_registry_raw>
+            <butler_template>
+                # how to name input file
+                filename = ${fn_butler_template}
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                dirpat = generic_norepo
+                job_enddir = config
+            </butler_template>
+            <skymap>
+                filename = skyMap-${skymap_version}.pickle
+                rename_file = skyMap.pickle
+                dirpat = generic_repo
+                job_enddir = deepCoadd
+            </skymap>
+        </file>
+        <list>
+            <corr>
+                depends = make_coadd_temp_exp.list.corr
+
+                # how to create lists
+                divide_by = tract, patch, filter
+                columns = img_corr.fullname, tract, patch, visit, ccd, filter
+
+                # what to name the list
+                filepat = list_tract_patch_filter 
+                flabel = ${modulename}_corr
+                fsuffix = list
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                dirpat = generic_norepo
+                ops_enddir = list/${modulename}
+                rundir = list/${modulename}
+            </corr>
+            <tempexp>
+                depends = make_coadd_temp_exp.file.deepcoadd_tempexp
+
+                # how to create lists
+                divide_by = tract, patch, filter
+                columns = tempexp.fullname, tract, patch, visit, filter
+
+                # what to name the list
+                filepat = list_tract_patch_filter 
+                flabel = ${modulename}_tempexp
+                fsuffix = list
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                dirpat = generic_norepo
+                ops_enddir = list/${modulename}
+                rundir = list/${modulename}
+            </tempexp>
+        </list>
+    </assemble_coadd>
+    <detect_coadd_sources>
+        <exec_1>
+            execname = detectCoaddSources.py
+            cmd_hyphen = mixed_gnu  # use single hyphen for single char options and double hyphen for multiple char options
+            <cmdline>
+                _01 = ${job_repo_dir}
+                output = ${job_repo_dir}
+                id = tract=${tract} patch=${patch} filter=${filter}
+                doraise = _flag
+            </cmdline>
+            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_det, file.deepcoadd
+            was_generated_by = file.deepcoadd_calexp, file.deepcoadd_det, file.deepcoadd_calexp_background
+        </exec_1>
+        <wrapper>
+            job_repo_dir = ${job_repo_dir}
+            mapper = lsst.obs.hsc.HscMapper
+            butler_template = ${file.butler_template.fullname}
+        </wrapper>
+        wrappername = genwrap_lsst.py
+        modnamepat = ${modnamepat_tract_patch_filter}
+        loopobj = file.deepcoadd
+        wrapperloop = tract, patch, filter
+        <file>
+            ### inputs
+            <deepCoadd>
+                depends = assemble_coadd.file.deepcoadd
+                match = tract, patch, filter
+                #fsuffix = fits
+                #filename = ${patch}.fits
+
+                # where to put it
+                dirpat = generic_repo
+                job_enddir = deepCoadd/${filter}/${tract}
+            </deepCoadd>
+            <butler_registry_raw>
+                # how to name input file
+                filename = ${fn_butler_registry_raw}
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                rename_file = registry.sqlite3
+                dirpat = generic_norepo
+                job_enddir = ${job_repo_dir}
+            </butler_registry_raw>
+            <butler_template>
+                # how to name input file
+                filename = ${fn_butler_template}
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                dirpat = generic_norepo
+                job_enddir = config
+            </butler_template>
+            <schema_deepcoadd_det>
+                filename = schema-deepCoadd_det-${config_version}.fits
+                rename_file = deepCoadd_det.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_deepcoadd_det>
+
+
+            ### outputs
+            <deepcoadd_calexp>
+                # what metadata to save
+                filetype = deepcoadd_calexp
+
+                # how to name output file
+                # deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/calexp-%(filter)s-%(tract)d-%(patch)s.fits
+                filepat = hsc_tract_patch_filter
+                flabel = calexp
+                fsuffix = fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it
+                dirpat = generic_repo
+                ops_enddir = coadd
+                job_enddir = deepCoadd-results/${filter}/${tract}/${patch}
+            </deepcoadd_calexp>
+            <deepcoadd_det>
+                # deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/calexp-%(filter)s-%(tract)d-%(patch)s.fits
+                # what metadata to save
+                filetype = deepcoadd_det
+
+                # how to name output file
+                #deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/det-%(filter)s-%(tract)d-%(patch)s.fits
+                filepat = hsc_tract_patch_filter
+                flabel = det
+                fsuffix = fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it
+                dirpat = hsc_tract_patch_filter
+                ops_enddir = coadd
+                job_outtype = deepCoadd-results
+            </deepcoadd_det>
+            <deepcoadd_calexp_background>
+                # what metadata to save
+                filetype = deepcoadd_calexp_bkg
+
+                # how to name output file
+                #deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/det_bkgd-%(filter)s-%(tract)d-%(patch)s.fits
+                filepat = hsc_tract_patch_filter
+                flabel = det_bkgd
+                fsuffix = fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it
+                dirpat = hsc_tract_patch_filter
+                ops_enddir = coadd
+                job_outtype = deepCoadd-results
+            </deepcoadd_calexp_background>
+        </file>
+    </detect_coadd_sources>
+    <merge_coadd_detections>
+        <exec_1>
+            execname = mergeCoaddDetections.py
+            cmd_hyphen = mixed_gnu  # use single hyphen for single char options and double hyphen for multiple char options
+            <cmdline>
+                _01 = ${job_repo_dir}
+                output = ${job_repo_dir}
+                doraise = _flag
+                id = tract=${tract} patch=${patch} filter=
+            </cmdline>
+            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_det,file.schema_deepcoadd_peak, file.schema_deepcoadd_mergedet, file.skymap, list.det.deepcoadd_det
+            was_generated_by = file.deepcoadd_mergedet
+        </exec_1>
+        <wrapper>
+            job_repo_dir = ${job_repo_dir}
+            mapper = lsst.obs.hsc.HscMapper
+            butler_template = ${file.butler_template.fullname}
+            add_cmdline = '^'.join(list.det.deepcoadd_det.filter)
+        </wrapper>
+        wrappername = genwrap_lsst.py
+        modnamepat = ${modnamepat_tract_patch}
+        loopobj = list.det
+        wrapperloop = tract, patch
+        <file>
+            ### inputs
+            <butler_registry_raw>
+                # how to name input file
+                filename = ${fn_butler_registry_raw}
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                rename_file = registry.sqlite3
+                dirpat = generic_norepo
+                job_enddir = ${job_repo_dir}
+            </butler_registry_raw>
+            <butler_template>
+                # how to name input file
+                filename = ${fn_butler_template}
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                dirpat = generic_norepo
+                job_enddir = config
+            </butler_template>
+            <skymap>
+                filename = skyMap-${skymap_version}.pickle
+                rename_file = skyMap.pickle
+                dirpat = generic_repo
+                job_enddir = deepCoadd
+            </skymap>
+            <schema_deepcoadd_det>
+                filename = schema-deepCoadd_det-${config_version}.fits
+                rename_file = deepCoadd_det.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_deepcoadd_det>
+            <schema_deepcoadd_peak>
+                filename = schema-deepCoadd_peak-${config_version}.fits
+                rename_file = deepCoadd_peak.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_deepcoadd_peak>
+            <schema_deepcoadd_mergedet>
+                filename = schema-deepCoadd_mergeDet-${config_version}.fits
+                rename_file = deepCoadd_mergeDet.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_deepcoadd_mergedet>
+            <deepcoadd_det>
+                listonly = true
+
+                # where to put it
+                dirpat = hsc_tract_patch_filter
+                job_outtype = deepCoadd-results
+            </deepcoadd_det>
+
+            ### outputs
+            <deepcoadd_mergedet>
+                # what metadata to save
+                filetype = deepcoadd_mergedet
+
+                # how to name output file
+                filepat = hsc_tract_patch
+                flabel = mergeDet
+                fsuffix = fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it
+                dirpat = hsc_patch_merged
+                ops_enddir = coadd
+                job_outtype = deepCoadd-results
+            </deepcoadd_mergedet>
+        </file>
+        <list>
+            <det>
+                depends = detect_coadd_sources.file.deepcoadd_det
+
+                # how to create lists
+                divide_by = tract, patch
+                columns = deepcoadd_det.fullname, tract, patch, filter
+
+                # what to name the list
+                filepat = list_tract_patch
+                flabel = ${modulename}_deepcoadd_det
+                fsuffix = list
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                dirpat = generic_norepo
+                ops_enddir = list/${modulename}
+                rundir = list/${modulename}
+            </det>
+        </list>
+    </merge_coadd_detections>
+    <measure_coadd_sources>
+        <exec_1>
+            execname = measureCoaddSources.py
+            cmd_hyphen = mixed_gnu  # use single hyphen for single char options and double hyphen for multiple char options
+            <cmdline>
+                _01 = ${job_repo_dir}
+                output = ${job_repo_dir}
+                doraise = _flag
+                id = tract=${tract} patch=${patch} filter=${filter}
+            </cmdline>
+            used = file.butler_template, file.butler_registry_raw, file.ref_cat, file.schema_deepcoadd_meas, file.schema_deepcoadd_mergedet, file.schema_deepcoadd_peak, file.skymap, file.cat_corr_src, file.deepcoadd_calexp, file.deepcoadd_mergedet
+            was_generated_by = file.deepcoadd_meas, file.deepcoadd_measmatch
+        </exec_1>
+        <wrapper>
+            job_repo_dir = ${job_repo_dir}
+            mapper = lsst.obs.hsc.HscMapper
+            butler_template = ${file.butler_template.fullname}
+            untar_files = ${file.ref_cat.fullname}
+        </wrapper>
+        wrappername = genwrap_lsst.py
+        modnamepat = ${modnamepat_tract_patch_filter}
+        loopobj = file.deepcoadd_calexp
+        wrapperloop = tract, patch, filter
+        <file>
+            ### inputs
+            <butler_registry_raw>
+                # how to name input file
+                filename = ${fn_butler_registry_raw}
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                rename_file = registry.sqlite3
+                dirpat = generic_norepo
+                job_enddir = ${job_repo_dir}
+            </butler_registry_raw>
+           <butler_template>
+                # how to name input file
+                filename = ${fn_butler_template}
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                dirpat = generic_norepo
+                job_enddir = config
+            </butler_template>
+            <schema_deepcoadd_meas>
+                filename = schema-deepCoadd_meas-${config_version}.fits
+                rename_file = deepCoadd_meas.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_deepcoadd_meas>
+            <schema_deepcoadd_peak>
+                filename = schema-deepCoadd_peak-${config_version}.fits
+                rename_file = deepCoadd_peak.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_deepcoadd_peak>
+            <schema_deepcoadd_mergedet>
+                filename = schema-deepCoadd_mergeDet-${config_version}.fits
+                rename_file = deepCoadd_mergeDet.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_deepcoadd_mergedet>
+            <skymap>
+                filename = skyMap-${skymap_version}.pickle
+                rename_file = skyMap.pickle
+                dirpat = generic_repo
+                job_enddir = deepCoadd
+            </skymap>
+            <ref_cat>
+                filename = ${fn_refcat_tarball}
+                dirpat = generic_repo
+                job_enddir = ref_cats
+            </ref_cat>
+            <cat_corr_src>
+                # how to name input file   ## could change to query
+                depends-newname = make_coadd_temp_exp.list.corr
+                match = tract, patch, filter
+                ignore_multiple_error = True
+                filepat = hsc_visit_ccd
+                flabel = SRC
+                fsuffix = fits
+
+                # where to put it
+                dirpat = hsc_ccd
+                job_enddir = output
+            </cat_corr_src>
+            <deepcoadd_calexp>
+                depends = detect_coadd_sources.file.deepcoadd_calexp
+                match = tract, patch, filter
+
+                # where to put it
+                dirpat = generic_repo
+                job_enddir = deepCoadd-results/${filter}/${tract}/${patch}
+            </deepcoadd_calexp>
+            <deepcoadd_mergedet>
+                depends = merge_coadd_detections.file.deepcoadd_mergedet
+                match = tract, patch
+
+                # where to put it
+                dirpat = hsc_patch_merged
+                job_outtype = deepCoadd-results
+            </deepcoadd_mergedet>
+
+            ### outputs
+            <deepcoadd_mergedet>
+                # what metadata to save
+                filetype = deepcoadd_mergedet
+
+                # how to name output file
+                filepat = hsc_tract_patch
+                flabel = mergeDet
+                fsuffix = fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it
+                dirpat = hsc_patch_merged
+                ops_enddir = coadd
+                job_outtype = deepCoadd-results
+            </deepcoadd_mergedet>
+
+            ### outputs
+            <deepcoadd_meas>
+                # what metadata to save
+                filetype = deepcoadd_meas
+
+                # how to name output file
+                # deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/meas-%(filter)s-%(tract)d-%(patch)s.fits
+                filepat = hsc_tract_patch_filter
+                flabel = meas
+                fsuffix = fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it
+                dirpat = hsc_tract_patch_filter
+                ops_enddir = coadd
+                job_outtype = deepCoadd-results
+            </deepcoadd_meas>
+            <deepcoadd_measmatch>
+                # what metadata to save
+                filetype = deepcoadd_measmatch
+
+                # how to name output file
+                # deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/srcMatch-%(filter)s-%(tract)d-%(patch)s.fits
+                filepat = hsc_tract_patch_filter
+                flabel = srcMatch
+                fsuffix = fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it
+                dirpat = hsc_tract_patch_filter
+                ops_enddir = coadd
+                job_outtype = deepCoadd-results
+            </deepcoadd_measmatch>
+        </file>
+    </measure_coadd_sources>
+    <merge_coadd_measurements>
+        <exec_1>
+            execname = mergeCoaddMeasurements.py
+            cmd_hyphen = mixed_gnu  # use single hyphen for single char options and double hyphen for multiple char options
+            <cmdline>
+                _01 = ${job_repo_dir}
+                output = ${job_repo_dir}
+                doraise = _flag
+                id = tract=${tract} patch=${patch} filter=
+            </cmdline>
+            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_meas, list.meas.deepcoadd_meas
+            was_generated_by = file.deepcoadd_ref
+        </exec_1>
+        <wrapper>
+            job_repo_dir = ${job_repo_dir}
+            mapper = lsst.obs.hsc.HscMapper
+            butler_template = ${file.butler_template.fullname}
+            add_cmdline = '^'.join(list.meas.deepcoadd_meas.filter)
+        </wrapper>
+        wrappername = genwrap_lsst.py
+        modnamepat = ${modnamepat_tract_patch}
+        loopobj = list.meas
+        wrapperloop = tract, patch
+        <file>
+            ### inputs
+            <butler_registry_raw>
+                # how to name input file
+                filename = ${fn_butler_registry_raw}
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                rename_file = registry.sqlite3
+                dirpat = generic_norepo
+                job_enddir = ${job_repo_dir}
+            </butler_registry_raw>
+           <butler_template>
+                # how to name input file
+                filename = ${fn_butler_template}
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                dirpat = generic_norepo
+                job_enddir = config
+            </butler_template>
+            <schema_deepcoadd_meas>
+                filename = schema-deepCoadd_meas-${config_version}.fits
+                rename_file = deepCoadd_meas.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_deepcoadd_meas>
+            <deepcoadd_meas>
+                listonly = true
+                
+                # where to put it
+                dirpat = hsc_tract_patch_filter
+                job_outtype = deepCoadd-results
+            </deepcoadd_meas>
+
+            ### outputs
+            <deepcoadd_ref>
+                # what metadata to save
+                filetype = deepcoadd_ref
+
+                # how to name output file
+                filepat = hsc_tract_patch
+                flabel = ref
+                fsuffix = fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it
+                dirpat = hsc_patch_merged
+                ops_enddir = coadd
+                job_outtype = deepCoadd-results
+            </deepcoadd_ref>
+        </file>
+        <list>
+            <meas>
+                depends = measure_coadd_sources.file.deepcoadd_meas
+
+                # how to create lists
+                divide_by = tract, patch
+                columns = deepcoadd_meas.fullname, tract, patch, filter
+
+                # what to name the list
+                filepat = list_tract_patch
+                flabel = ${modulename}_deepcoadd_meas
+                fsuffix = list
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                dirpat = generic_norepo
+                ops_enddir = list/${modulename}
+                rundir = list/${modulename}
+            </meas>
+        </list>
+    </merge_coadd_measurements>
+    <forced_phot_coadd>
+        <exec_1>
+            execname = forcedPhotCoadd.py
+            cmd_hyphen = mixed_gnu  # use single hyphen for single char options and double hyphen for multiple char options
+            <cmdline>
+                _01 = ${job_repo_dir}
+                output = ${job_repo_dir}
+                doraise = _flag
+                id = tract=${tract} patch=${patch} filter=${filter}
+            </cmdline>
+            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_ref, file.schema_deepcoadd_forced_src, file.skymap, file.deepcoadd_calexp, file.deepcoadd_meas, file.deepcoadd_ref
+            was_generated_by = file.deepcoadd_forced_src
+        </exec_1>
+        <wrapper>
+            job_repo_dir = ${job_repo_dir}
+            mapper = lsst.obs.hsc.HscMapper
+            butler_template = ${file.butler_template.fullname}
+        </wrapper>
+        wrappername = genwrap_lsst.py
+        modnamepat = ${modnamepat_tract_patch_filter}
+        loopobj = file.deepcoadd_meas
+        wrapperloop = tract, patch, filter
+        <file>
+            ### inputs
+            <butler_registry_raw>
+                # how to name input file
+                filename = ${fn_butler_registry_raw}
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                rename_file = registry.sqlite3
+                dirpat = generic_norepo
+                job_enddir = ${job_repo_dir}
+            </butler_registry_raw>
+           <butler_template>
+                # how to name input file
+                filename = ${fn_butler_template}
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                dirpat = generic_norepo
+                job_enddir = config
+            </butler_template>
+            <schema_deepcoadd_ref>
+                filename = schema-deepCoadd_ref-${config_version}.fits
+                rename_file = deepCoadd_ref.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_deepcoadd_ref>
+            <schema_deepcoadd_forced_src>
+                filename = schema-deepCoadd_forced_src-${config_version}.fits
+                rename_file = deepCoadd_forced_src.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_deepcoadd_forced_src>
+            <skymap>
+                filename = skyMap-${skymap_version}.pickle
+                rename_file = skyMap.pickle
+                dirpat = generic_repo
+                job_enddir = deepCoadd
+            </skymap>
+            <deepcoadd_calexp>
+                depends = detect_coadd_sources.file.deepcoadd_calexp
+                match = tract, patch, filter
+
+                # where to put it
+                dirpat = generic_repo
+                job_enddir = deepCoadd-results/${filter}/${tract}/${patch}
+            </deepcoadd_calexp>
+            <deepcoadd_meas>
+                depends = measure_coadd_sources.file.deepcoadd_meas
+                match = tract, patch, filter
+
+                # where to put it
+                dirpat = hsc_tract_patch_filter
+                job_outtype = deepCoadd-results
+            </deepcoadd_meas>
+            <deepcoadd_ref>
+                depends = merge_coadd_measurements.file.deepcoadd_ref
+                match = tract, patch
+
+                # where to put it
+                dirpat = hsc_patch_merged
+                job_outtype = deepCoadd-results
+            </deepcoadd_ref>
+
+            ### outputs
+            <deepcoadd_forced_src>
+                # what metadata to save
+                filetype = deepcoadd_forced_src
+
+                # how to name output file
+                # deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/forced_src-%(filter)s-%(tract)d-%(patch)s.fits
+                filepat = hsc_tract_patch_filter
+                flabel = forced_src
+                fsuffix = fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it
+                dirpat = hsc_tract_patch_filter
+                ops_enddir = coadd
+                job_outtype = deepCoadd-results
+            </deepcoadd_forced_src>
+        </file>
+    </forced_phot_coadd>
+    <forced_phot_ccd>
+        <exec_1>
+            execname = forcedPhotCcd.py
+            cmd_hyphen = mixed_gnu  # use single hyphen for single char options and double hyphen for multiple char options
+            <cmdline>
+                _01 = ${job_repo_dir}
+                output = ${job_repo_dir}
+                doraise = _flag
+                id = --id visit=${visit} ccd=${ccd} tract=${tract}
+            </cmdline>
+            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_ref, file.schema_forced_src, file.skymap, file.config_forcedphotccd, file.deepcoadd_ref, file.img_corr
+            was_generated_by = file.forced_src
+        </exec_1>
+        <wrapper>
+            job_repo_dir = ${job_repo_dir}
+            mapper = lsst.obs.hsc.HscMapper
+            butler_template = ${file.butler_template.fullname}
+        </wrapper>
+        wrappername = genwrap_lsst.py
+        modnamepat = ${modnamepat_tract_visit_ccd_filter}
+        loopobj = file.img_corr
+        #wrapperloop = 
+        <file>
+            ### inputs
+            <butler_registry_raw>
+                # how to name input file
+                filename = ${fn_butler_registry_raw}
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                rename_file = registry.sqlite3
+                dirpat = generic_norepo
+                job_enddir = ${job_repo_dir}
+            </butler_registry_raw>
+            <butler_template>
+                # how to name input file
+                filename = ${fn_butler_template}
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                dirpat = generic_norepo
+                job_enddir = config
+            </butler_template>
+            <schema_deepcoadd_ref>
+                filename = schema-deepCoadd_ref-${config_version}.fits
+                rename_file = deepCoadd_ref.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_deepcoadd_ref>
+            <schema_deepcoadd_forced_src>
+                filename = schema-forced_src-${config_version}.fits
+                rename_file = forced_src.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_deepcoadd_forced_src>
+            <skymap>
+                filename = skyMap-${skymap_version}.pickle
+                rename_file = skyMap.pickle
+                dirpat = generic_repo
+                job_enddir = deepCoadd
+            </skymap>
+            <config_forcedphotccd>
+                filename = forcedPhotCcdConfig-${config_version}.py 
+                dirpat = generic_norepo
+                job_enddir = config
+            </config_forcedphotccd>
+            <img_corr>
+                depends = make_coadd_temp_exp.list.corr
+
+                dirpat = hsc_ccd
+                job_enddir = corr
+            </img_corr>
+            <deepcoadd_ref>
+                depends = merge_coadd_measurements.file.deepcoadd_ref
+                match = patch
+
+                # where to put it
+                dirpat = hsc_patch_merged
+                job_outtype = deepCoadd-results
+            </deepcoadd_ref>
+
+            ### outputs
+            <forced_src>
+                # what metadata to save
+                filetype = forced_src
+
+                # FORCEDSRC-%(tract)04d-%(visit)07d-%(ccd)03d-r${reqnum}p${attnum:2}.fits
+
+                # how to name output file
+                filepat = hsc_tract_visit_ccd
+                flabel = FORCEDSRC
+                fsuffix = fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it
+                # %(pointing)05d/%(filter)s/tract%(tract)d/
+                dirpat = hsc_tract_patch_filter
+                ops_enddir = coadd
+                job_endir = tract${tract}
+            </forced_src>
+        </file>
+    </forced_phot_ccd>
+</module>
+
+<filename_pattern>
+    generic = ${flabel}_${unitname}-r${reqnum}p${attnum:2}.${fsuffix}
+    hsc_visit_ccd = ${flabel}-${visit:7}-${ccd:3}-r${reqnum}p${attnum:2}.${fsuffix}
+    hsc_tract_visit_ccd = ${flabel}-${tract:4}-${visit:7}-${ccd:3}-r${reqnum}p${attnum:2}.${fsuffix}
+    hsc_tract_patch_filter = ${flabel}-${filter}-${tract}-${patch}-r${reqnum}p${attnum:2}.${fsuffix}
+    hsc_tract_patch_visit_filter = ${flabel}-${filter}-${tract}-${patch}-${visit}-r${reqnum}p${attnum:2}.${fsuffix}
+    hsc_tract_patch = ${flabel}-${tract}-${patch}-r${reqnum}p${attnum:2}.${fsuffix}
+    hsc_patch = $OPT{flabel}${patch}-r${reqnum}p${attnum:2}.${fsuffix}
+    list_tract_patch_visit_filter = ${flabel}-${filter}-${tract}-${patch}-${camsym}${visit:7}-r${reqnum}p${attnum:2}.${fsuffix}
+    list_tract_patch_filter = ${flabel}-${filter}-${tract}-${patch}-r${reqnum}p${attnum:2}.${fsuffix}
+    list_tract_patch = ${flabel}-${tract}-${patch}-r${reqnum}p${attnum:2}.${fsuffix}
+</filename_pattern>
+<directory_pattern>
+    <lsst_calib>
+        #ops = 
+        runtime = ${job_repo_dir}/CALIB/${calibtype}/${calib_date}/NONE
+    </lsst_calib>
+    <lsst_calib_filter>
+        #ops = 
+        runtime = ${job_repo_dir}/CALIB/${calibtype}/${calib_date}/${filter} 
+    </lsst_calib_filter>
+    <hsc_raw>
+        #ops = MTN/HSC/${dateobs}/${visit}
+        runtime = ${job_repo_dir}/${field}/${dateobs}/${pointing:5}/${filter}
+    </hsc_raw>
+    <lsst_bf>
+        runtime = ${job_repo_dir}/CALIB/BFKERNEL
+    </lsst_bf>
+    <hsc_ccd>
+        ops = ${ops_run_dir}/${ops_enddir}
+        runtime = ${job_repo_dir}/${pointing:5}/${filter}/${job_enddir}
+    </hsc_ccd>
+    <hsc_tract_patch_filter>
+        ops = ${ops_run_dir}/${ops_enddir}
+        runtime = ${job_repo_dir}/${job_outtype}/${filter}/${tract}/${patch}
+    </hsc_tract_patch_filter>
+    <hsc_patch_merged>
+        ops = ${ops_run_dir}/${ops_enddir}
+        runtime = ${job_repo_dir}/${job_outtype}/merged/${tract}/${patch}
+    </hsc_patch_merged>
+    <generic_repo>
+        ops = ${ops_run_dir}/${ops_enddir}
+        runtime = ${job_repo_dir}/${job_enddir}
+    </generic_repo>
+    <generic_norepo>
+        ops = ${ops_run_dir}/${ops_enddir}
+        runtime = ${job_enddir}
+    </generic_norepo>
+</directory_pattern>
+
+modnamepat_tract_generic = ${unitname}-r${reqnum}p${attnum:2}_${modulename}
+modnamepat_tract_filter = ${unitname}-r${reqnum}p${attnum:2}_${filter}_${modulename}
+modnamepat_tract_patch_filter = ${unitname}-r${reqnum}p${attnum:2}_${patch}_${filter}_${modulename}
+modnamepat_tract_patch_visit_filter = ${unitname}-r${reqnum}p${attnum:2}_${patch}_${camsym}${visit:8}_${filter}_${modulename}
+modnamepat_tract_patch = ${unitname}-r${reqnum}p${attnum:2}_${patch}_${modulename}
+modnamepat_tract_visit_filter = ${unitname}-r${reqnum}p${attnum:2}_${camsym}${visit:8}_${filter}_${modulename}
+modnamepat_tract_visit_ccd_filter = ${unitname}-r${reqnum}p${attnum:2}_${camsym}${visit:8}_${filter}_c${ccd:3}_${modulename}
