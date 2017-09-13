@@ -21,7 +21,7 @@ overlap_version = ci_hsc-v2
 #skymap_version = w_2017_14-v2     # what version of skymap to use
 config_version = w_2017_28-v1     # what version of configs to use
 skymap_version = w_2017_28-v1     # what version of skymap to use
-fn_refcat_tarball = ps1_pv3_3pi_20170110.tar   # what reference catalog to use
+ref_cats_path = /datasets/refcats/htm
 fn_butler_template = butler_templates-${config_version}.yaml
 fn_butler_registry_raw = ${dataset}_registry-${config_version}.sqlite3
 fn_butler_registry_calib = ${dataset}_calibRegistry-${config_version}.sqlite3
@@ -60,7 +60,7 @@ verify_files = False
             cmd_hyphen = mixed_gnu  # use single hyphen for single char options and double hyphen for multiple char options
 
             # open provenance model
-            used = file.butler_template,file.butler_registry_raw,file.butler_registry_calib,file.schema_src,file.schema_icsrc,file.bf,file.raw,file.biascor,file.dflatcor,file.darkcor,file.ref_cat
+            used = file.butler_template,file.butler_registry_raw,file.butler_registry_calib,file.schema_src,file.schema_icsrc,file.bf,file.raw,file.biascor,file.dflatcor,file.darkcor
             was_generated_by = file.cat_corr_src, file.img_corr
             # ancestry =
 
@@ -108,12 +108,6 @@ verify_files = False
                 filename = brighter_fatter_kernel.pkl
                 dirpat = lsst_bf
             </bf>
-            <ref_cat>
-                # reference catalog is a small set of files, so managing it as tarball
-                filename = ${fn_refcat_tarball}
-                dirpat = generic_repo
-                job_enddir = ref_cats
-            </ref_cat>
             <raw>
                 # how to get data
                 exec = hsc_dummy_query_raw.py
@@ -213,7 +207,7 @@ verify_files = False
             job_repo_dir = ${job_repo_dir}
             mapper = lsst.obs.hsc.HscMapper                     # what mapper to use
             butler_template = ${file.butler_template.fullname}  # what file entry is the butler template (so we're not hardcoding section name)
-            untar_files = ${file.ref_cat.fullname}              # need to untar reference catalog
+            ref_cats_root = ${ref_cats_path}
         </wrapper>
         wrappername = genwrap_lsst.py
         wrapperloop = visit,filter,ccd, pointing   # filter included here so can match dflatcor on it (pointing for output paths)
@@ -671,14 +665,14 @@ verify_files = False
                 doraise = _flag
                 id = tract=${tract} patch=${patch} filter=${filter}
             </cmdline>
-            used = file.butler_template, file.butler_registry_raw, file.ref_cat, file.skymap, file.cat_corr_src, file.deepcoadd_calexp, file.deepcoadd_mergedet
+            used = file.butler_template, file.butler_registry_raw, file.skymap, file.cat_corr_src, file.deepcoadd_calexp, file.deepcoadd_mergedet
             was_generated_by = file.deepcoadd_meas, file.deepcoadd_measmatch
         </exec_1>
         <wrapper>
             job_repo_dir = ${job_repo_dir}
             mapper = lsst.obs.hsc.HscMapper
             butler_template = ${file.butler_template.fullname}
-            untar_files = ${file.ref_cat.fullname}
+            ref_cats_root = ${ref_cats_path}
         </wrapper>
         wrappername = genwrap_lsst.py
         modnamepat = ${modnamepat_tract_patch_filter}
@@ -709,11 +703,6 @@ verify_files = False
                 dirpat = generic_repo
                 job_enddir = deepCoadd
             </skymap>
-            <ref_cat>
-                filename = ${fn_refcat_tarball}
-                dirpat = generic_repo
-                job_enddir = ref_cats
-            </ref_cat>
             <cat_corr_src>
                 # how to name input file   ## could change to query
                 depends-newname = make_coadd_temp_exp.list.corr
