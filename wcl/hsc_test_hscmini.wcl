@@ -2,12 +2,12 @@
 
 # using pre-existing butler registry files
 
-reqnum = 17                   # a processing request number
-jira_id = DM-10701            # points to a jira_id describing the processing request
+reqnum = 1                    # a processing request number
+jira_id = DM-11864            # points to a jira_id describing the processing request
 tract = 0                     # which tract to process
 
 blocklist = processccd, drp-patch
-target_site = slsstdev
+target_site = lsstdev
 campaign = MDEV
 pipeline = hscmini
 pipeprod = mgstack
@@ -16,7 +16,7 @@ pipever = w_2017_33
 
 
 dataset = ci_hsc               # used in names of butler registry files
-overlap_version = ci_hsc-v2
+overlap_version = minihsc-v2
 #config_version = w_2017_14-v2     # what version of configs to use
 #skymap_version = w_2017_14-v2     # what version of skymap to use
 config_version = w_2017_28-v1     # what version of configs to use
@@ -252,7 +252,7 @@ verify_files = False
                 job_enddir = config
             </butler_template>
             <skymap>
-                filename = skyMap-${skymap_version}.pickle
+                filename = skyMap-${skymap_version}-mini.pickle
                 rename_file = skyMap.pickle   # science code requires this filename (note: not unique)
                 dirpat = generic_repo
                 job_enddir = deepCoadd
@@ -295,10 +295,10 @@ verify_files = False
                 #args = --section ${submit_des_db_section} --tractinfo ${tractinfo} --tract ${tract} --qoutfile ${qoutfile} --pfw_attempt_id ${query_pfw_attempt_id}
 
                 query_table = image
-                query_fields = filetype, overlap.tract, pfw_attempt_id
-                join = image.visit=overlap.visit, image.ccd=overlap.ccd
+                query_fields = filetype, ccd_overlap_patch.tract, pfw_attempt_id
+                join = image.visit=ccd_overlap_patch.visit, image.ccd=ccd_overlap_patch.ccd
                 filetype = img_corr
-                output_fields = filename,visit,filter,ccd,pointing,overlap.tract,overlap.patch
+                output_fields = filename,visit,filter,ccd,pointing,ccd_overlap_patch.tract,ccd_overlap_patch.patch
 
                 # how to create lists
                 divide_by = tract, patch, visit, filter      # define_quanta
@@ -402,7 +402,7 @@ verify_files = False
                 job_enddir = config
             </butler_template>
             <skymap>
-                filename = skyMap-${skymap_version}.pickle
+                filename = skyMap-${skymap_version}-mini.pickle
                 rename_file = skyMap.pickle
                 dirpat = generic_repo
                 job_enddir = deepCoadd
@@ -602,7 +602,7 @@ verify_files = False
                 job_enddir = config
             </butler_template>
             <skymap>
-                filename = skyMap-${skymap_version}.pickle
+                filename = skyMap-${skymap_version}-mini.pickle
                 rename_file = skyMap.pickle
                 dirpat = generic_repo
                 job_enddir = deepCoadd
@@ -698,7 +698,7 @@ verify_files = False
                 job_enddir = config
             </butler_template>
             <skymap>
-                filename = skyMap-${skymap_version}.pickle
+                filename = skyMap-${skymap_version}-mini.pickle
                 rename_file = skyMap.pickle
                 dirpat = generic_repo
                 job_enddir = deepCoadd
@@ -932,7 +932,7 @@ verify_files = False
                 job_enddir = schema
             </schema_deepcoadd_forced_src>
             <skymap>
-                filename = skyMap-${skymap_version}.pickle
+                filename = skyMap-${skymap_version}-mini.pickle
                 rename_file = skyMap.pickle
                 dirpat = generic_repo
                 job_enddir = deepCoadd
@@ -1032,7 +1032,7 @@ verify_files = False
                 job_enddir = schema
             </schema_deepcoadd_forced_src>
             <skymap>
-                filename = skyMap-${skymap_version}.pickle
+                filename = skyMap-${skymap_version}-mini.pickle
                 rename_file = skyMap.pickle
                 dirpat = generic_repo
                 job_enddir = deepCoadd
