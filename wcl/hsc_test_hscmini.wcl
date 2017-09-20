@@ -17,8 +17,7 @@ pipever = w_2017_33
 
 dataset = ci_hsc               # used in names of butler registry files
 overlap_version = minihsc-v2
-#config_version = w_2017_14-v2     # what version of configs to use
-#skymap_version = w_2017_14-v2     # what version of skymap to use
+schema_version = w_2017_33-v1     # what version of configs to use
 config_version = w_2017_28-v1     # what version of configs to use
 skymap_version = w_2017_28-v1     # what version of skymap to use
 ref_cats_path = /datasets/refcats/htm
@@ -128,13 +127,13 @@ verify_files = False
                 rename_file = HSC-${visit:7}-${ccd:3}.fits     # Butler requires file to have a different name
             </raw>
             <schema_src>
-                filename = schema-src-${config_version}.fits
+                filename = schema-src-${schema_version}.fits
                 rename_file = src.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_src>
             <schema_icsrc>
-                filename = schema-icSrc-${config_version}.fits
+                filename = schema-icSrc-${schema_version}.fits
                 rename_file = icSrc.fits
                 dirpat = generic_repo
                 job_enddir = schema
@@ -455,7 +454,7 @@ verify_files = False
                 id = tract=${tract} patch=${patch} filter=${filter}
                 doraise = _flag
             </cmdline>
-            used = file.butler_template, file.butler_registry_raw, file.deepcoadd
+            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_det, file.deepcoadd
             was_generated_by = file.deepcoadd_calexp, file.deepcoadd_det, file.deepcoadd_calexp_background
         </exec_1>
         <wrapper>
@@ -496,6 +495,12 @@ verify_files = False
                 dirpat = generic_norepo
                 job_enddir = config
             </butler_template>
+            <schema_deepcoadd_det>
+                filename = schema-deepCoadd_det-${schema_version}.fits
+                rename_file = deepCoadd_det.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_deepcoadd_det>
 
 
             ### outputs
@@ -569,7 +574,7 @@ verify_files = False
                 doraise = _flag
                 id = tract=${tract} patch=${patch} filter=
             </cmdline>
-            used = file.butler_template, file.butler_registry_raw, file.skymap, list.det.deepcoadd_det
+            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_det,file.schema_deepcoadd_peak, file.schema_deepcoadd_mergedet, file.skymap, list.det.deepcoadd_det
             was_generated_by = file.deepcoadd_mergedet
         </exec_1>
         <wrapper>
@@ -607,6 +612,24 @@ verify_files = False
                 dirpat = generic_repo
                 job_enddir = deepCoadd
             </skymap>
+            <schema_deepcoadd_det>
+                filename = schema-deepCoadd_det-${schema_version}.fits
+                rename_file = deepCoadd_det.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_deepcoadd_det>
+            <schema_deepcoadd_peak>
+                filename = schema-deepCoadd_peak-${schema_version}.fits
+                rename_file = deepCoadd_peak.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_deepcoadd_peak>
+            <schema_deepcoadd_mergedet>
+                filename = schema-deepCoadd_mergeDet-${schema_version}.fits
+                rename_file = deepCoadd_mergeDet.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_deepcoadd_mergedet>
             <deepcoadd_det>
                 listonly = true
 
@@ -665,7 +688,7 @@ verify_files = False
                 doraise = _flag
                 id = tract=${tract} patch=${patch} filter=${filter}
             </cmdline>
-            used = file.butler_template, file.butler_registry_raw, file.skymap, file.cat_corr_src, file.deepcoadd_calexp, file.deepcoadd_mergedet
+            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_meas, file.schema_deepcoadd_mergedet, file.schema_deepcoadd_peak, file.skymap, file.cat_corr_src, file.deepcoadd_calexp, file.deepcoadd_mergedet
             was_generated_by = file.deepcoadd_meas, file.deepcoadd_measmatch
         </exec_1>
         <wrapper>
@@ -697,6 +720,24 @@ verify_files = False
                 dirpat = generic_norepo
                 job_enddir = config
             </butler_template>
+            <schema_deepcoadd_meas>
+                filename = schema-deepCoadd_meas-${schema_version}.fits
+                rename_file = deepCoadd_meas.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_deepcoadd_meas>
+            <schema_deepcoadd_peak>
+                filename = schema-deepCoadd_peak-${schema_version}.fits
+                rename_file = deepCoadd_peak.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_deepcoadd_peak>
+            <schema_deepcoadd_mergedet>
+                filename = schema-deepCoadd_mergeDet-${schema_version}.fits
+                rename_file = deepCoadd_mergeDet.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_deepcoadd_mergedet>
             <skymap>
                 filename = skyMap-${skymap_version}-mini.pickle
                 rename_file = skyMap.pickle
@@ -804,7 +845,7 @@ verify_files = False
                 doraise = _flag
                 id = tract=${tract} patch=${patch} filter=
             </cmdline>
-            used = file.butler_template, file.butler_registry_raw, list.meas.deepcoadd_meas
+            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_meas, list.meas.deepcoadd_meas
             was_generated_by = file.deepcoadd_ref
         </exec_1>
         <wrapper>
@@ -836,6 +877,12 @@ verify_files = False
                 dirpat = generic_norepo
                 job_enddir = config
             </butler_template>
+            <schema_deepcoadd_meas>
+                filename = schema-deepCoadd_meas-${schema_version}.fits
+                rename_file = deepCoadd_meas.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_deepcoadd_meas>
             <deepcoadd_meas>
                 listonly = true
 
@@ -894,7 +941,7 @@ verify_files = False
                 doraise = _flag
                 id = tract=${tract} patch=${patch} filter=${filter}
             </cmdline>
-            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_forced_src, file.skymap, file.deepcoadd_calexp, file.deepcoadd_meas, file.deepcoadd_ref
+            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_ref, file.schema_deepcoadd_forced_src, file.skymap, file.deepcoadd_calexp, file.deepcoadd_meas, file.deepcoadd_ref
             was_generated_by = file.deepcoadd_forced_src
         </exec_1>
         <wrapper>
@@ -925,8 +972,14 @@ verify_files = False
                 dirpat = generic_norepo
                 job_enddir = config
             </butler_template>
+            <schema_deepcoadd_ref>
+                filename = schema-deepCoadd_ref-${schema_version}.fits
+                rename_file = deepCoadd_ref.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_deepcoadd_ref>
             <schema_deepcoadd_forced_src>
-                filename = schema-deepCoadd_forced_src-${config_version}.fits
+                filename = schema-deepCoadd_forced_src-${schema_version}.fits
                 rename_file = deepCoadd_forced_src.fits
                 dirpat = generic_repo
                 job_enddir = schema
@@ -994,7 +1047,7 @@ verify_files = False
                 doraise = _flag
                 id = --id visit=${visit} ccd=${ccd} tract=${tract}
             </cmdline>
-            used = file.butler_template, file.butler_registry_raw, file.schema_forced_src, file.skymap, file.config_forcedphotccd, file.deepcoadd_ref, file.img_corr
+            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_ref, file.schema_forced_src, file.skymap, file.config_forcedphotccd, file.deepcoadd_ref, file.img_corr
             was_generated_by = file.forced_src
         </exec_1>
         <wrapper>
@@ -1025,8 +1078,14 @@ verify_files = False
                 dirpat = generic_norepo
                 job_enddir = config
             </butler_template>
+            <schema_deepcoadd_ref>
+                filename = schema-deepCoadd_ref-${schema_version}.fits
+                rename_file = deepCoadd_ref.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_deepcoadd_ref>
             <schema_deepcoadd_forced_src>
-                filename = schema-forced_src-${config_version}.fits
+                filename = schema-forced_src-${schema_version}.fits
                 rename_file = forced_src.fits
                 dirpat = generic_repo
                 job_enddir = schema
