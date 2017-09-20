@@ -10,9 +10,8 @@ blocklist = processccd, drp-patch
 target_site = lsstdev
 campaign = MDEV
 pipeline = hscmini
-pipeprod = mgstack
-#pipever = w_2017_14
-pipever = w_2017_33
+pipeprod = BPSstack
+pipever = w_2017_33_v1
 
 
 dataset = ci_hsc               # used in names of butler registry files
