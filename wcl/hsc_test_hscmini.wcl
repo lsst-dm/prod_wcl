@@ -19,6 +19,7 @@ overlap_version = minihsc-v2
 schema_version = w_2017_33-v1     # what version of configs to use
 config_version = w_2017_28-v1     # what version of configs to use
 skymap_version = w_2017_28-v1     # what version of skymap to use
+calib_version = ci_hsc
 ref_cats_path = /datasets/refcats/htm
 fn_butler_template = butler_templates-${config_version}.yaml
 fn_butler_registry_raw = ${dataset}_registry-${config_version}.sqlite3
@@ -73,7 +74,9 @@ verify_files = False
         <file>
             <biascor>
                 query_table = calibration
-                query_fields = filetype
+                join calibration.filename=ops_calibration_lookup.filename
+                query_fields = filetype, ops_calibration_lookup.version
+                version = ${calib_version}
                 filetype = cal_biascor_hsc
                 output_fields = filename, calib_date, ccd
                 match = ccd
@@ -83,7 +86,9 @@ verify_files = False
             </biascor>
             <dflatcor>
                 query_table = calibration
-                query_fields = filetype
+                join calibration.filename=ops_calibration_lookup.filename
+                query_fields = filetype, ops_calibration_lookup.version
+                version = ${calib_version}
                 filetype = cal_dflatcor_hsc
                 output_fields = filename, calib_date, filter, ccd
                 match = filter, ccd
@@ -94,7 +99,9 @@ verify_files = False
             </dflatcor>
             <darkcor>
                 query_table = calibration
-                query_fields = filetype
+                join calibration.filename=ops_calibration_lookup.filename
+                query_fields = filetype, ops_calibration_lookup.version
+                version = ${calib_version}
                 filetype = cal_darkcor_hsc
                 output_fields = filename, calib_date, ccd
                 match = ccd
