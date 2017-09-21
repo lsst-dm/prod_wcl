@@ -60,7 +60,7 @@ verify_files = False
 
             # open provenance model
             used = file.butler_template,file.butler_registry_raw,file.butler_registry_calib,file.schema_src,file.schema_icsrc,file.bf,file.raw,file.biascor,file.dflatcor,file.darkcor
-            was_generated_by = file.cat_corr_src, file.img_corr, file.sfm_srcmatch
+            was_generated_by = file.cat_corr_src, file.img_corr, file.sfm_srcmatch, file.sfm_srcmatchfull, file.sfm_calexpbkgd, file.sfm_oss_thumb, file.sfm_flattened_thumb, file.processccd_md_boost
             # ancestry =
 
             <cmdline>
@@ -225,6 +225,79 @@ verify_files = False
                 ops_enddir = cat
                 job_enddir = output
             </sfm_srcmatch>
+            <sfm_srcmatchfull>
+                #"repo/00671/HSC-I/output/SRCMATCHFULL-0903986-016.fits"
+                filetype = sfm_srcmatchfull
+
+                # how to name output file
+                filepat = hsc_visit_ccd
+                flabel = SRCMATCHFULL
+                fsuffix = fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it (jobroot=job_enddir, archive=ops_enddir)
+                dirpat = hsc_ccd
+                ops_enddir = cat
+                job_enddir = output
+            </sfm_srcmatchfull>
+            <sfm_calexpbkgd>
+                filetype = sfm_calexpbkgd
+
+                filepat = hsc_visit_ccd
+                flabel = BKGD
+                fsuffix = fits
+
+                savefiles = true
+                compress_files = false
+
+                dirpat = hsc_ccd
+                ops_enddir = other
+                job_enddir = corr
+            </sfm_calexpbkgd>
+            <sfm_oss_thumb>
+                filetype = sfm_oss_thumb
+
+                filepat = hsc_visit_ccd
+                flabel = oss
+                fsuffix = png
+
+                savefiles = true
+                compress_files = false
+
+                dirpat = hsc_ccd
+                ops_enddir = img
+                job_enddir = thumbs
+            </sfm_oss_thumb>
+            <sfm_flattened_thumb>
+                filetype = sfm_flattened_thumb
+
+                filepat = hsc_visit_ccd
+                flabel = flattened
+                fsuffix = png
+
+                savefiles = true
+                compress_files = false
+
+                dirpat = hsc_ccd
+                ops_enddir = img
+                job_enddir = thumbs
+            </sfm_flattened_thumb>
+            <processccd_md_boost>
+                filetype = processccd_md_boost
+
+                filepat = hsc_processccd_md_boost
+                fsuffix = boost
+
+                savefiles = true
+                compress_files = false
+
+                dirpat = hsc_ccd
+                ops_enddir = boost
+                job_enddir = processCcd_metadata
+            </processccd_md_boost>
         </file>
         <wrapper>
             job_repo_dir = ${job_repo_dir}
@@ -1192,11 +1265,138 @@ verify_files = False
         metadata_table = catalog
         filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
     </sfm_srcmatch>
+    <sfm_srcmatchfull>
+        <hdus>
+            <primary>
+                <r>
+                    <f>
+                        ccd = ccd
+                        visit = visit
+                    </f>
+                    <w>
+                        filter = filter
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+                <o>
+                    <w>
+                        camsym = camsym
+                    </w>
+                </o>
+            </primary>
+        </hdus>
+        metadata_table = catalog
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </sfm_srcmatchfull>
+    <sfm_calexpbkgd>
+        <hdus>
+            <primary>
+                <r>
+                    <f>
+                        ccd = ccd
+                        visit = visit
+                    </f>
+                    <w>
+                        filter = filter
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+                <o>
+                    <w>
+                        camsym = camsym
+                    </w>
+                </o>
+            </primary>
+        </hdus>
+        metadata_table = desfile
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </sfm_calexpbkgd>
+    <sfm_oss_thumb>
+        <hdus>
+            <primary>
+                <r>
+                    <f>
+                        ccd = ccd
+                        visit = visit
+                    </f>
+                    <w>
+                        filter = filter
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+                <o>
+                    <w>
+                        camsym = camsym
+                    </w>
+                </o>
+            </primary>
+        </hdus>
+        metadata_table = image
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </sfm_oss_thumb>
+    <sfm_flattened_thumb>
+        <hdus>
+            <primary>
+                <r>
+                    <f>
+                        ccd = ccd
+                        visit = visit
+                    </f>
+                    <w>
+                        filter = filter
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+                <o>
+                    <w>
+                        camsym = camsym
+                    </w>
+                </o>
+            </primary>
+        </hdus>
+        metadata_table = image
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </sfm_flattened_thumb>
+    <processccd_md_boost>
+        <hdus>
+            <primary>
+                <r>
+                    <f>
+                        ccd = ccd
+                        visit = visit
+                    </f>
+                    <w>
+                        filter = filter
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+                <o>
+                    <w>
+                        camsym = camsym
+                    </w>
+                </o>
+            </primary>
+        </hdus>
+        metadata_table = desfile
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </processccd_md_boost>
+
 </filetype_metadata>
 
 
 <filename_pattern>
     generic = ${flabel}_${unitname}-r${reqnum}p${attnum:2}.${fsuffix}
+    hsc_processccd_md_boost = ${visit:7}-${ccd:3}-r${reqnum}p${attnum:2}.${fsuffix}
     hsc_visit_ccd = ${flabel}-${visit:7}-${ccd:3}-r${reqnum}p${attnum:2}.${fsuffix}
     hsc_tract_visit_ccd = ${flabel}-${tract:4}-${visit:7}-${ccd:3}-r${reqnum}p${attnum:2}.${fsuffix}
     hsc_tract_patch_filter = ${flabel}-${filter}-${tract}-${patch}-r${reqnum}p${attnum:2}.${fsuffix}
