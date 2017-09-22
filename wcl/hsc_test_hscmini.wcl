@@ -60,7 +60,7 @@ verify_files = False
 
             # open provenance model
             used = file.butler_template,file.butler_registry_raw,file.butler_registry_calib,file.schema_src,file.schema_icsrc,file.bf,file.raw,file.biascor,file.dflatcor,file.darkcor
-            was_generated_by = file.cat_corr_src, file.img_corr, file.sfm_srcmatch, file.sfm_srcmatchfull, file.sfm_calexpbkgd, file.sfm_oss_thumb, file.sfm_flattened_thumb, file.processccd_md_boost
+            was_generated_by = file.cat_corr_src, file.img_corr, file.sfm_srcmatch, file.sfm_srcmatchfull, file.sfm_calexpbkgd, file.sfm_oss_thumb, file.sfm_flattened_thumb, file.processccd_md_boost, file.sfm_icsrc
             # ancestry =
 
             <cmdline>
@@ -298,6 +298,21 @@ verify_files = False
                 ops_enddir = boost
                 job_enddir = processCcd_metadata
             </processccd_md_boost>
+            <sfm_icsrc>
+                filetype = sfm_icsrc
+
+                filepat = hsc_visit_ccd
+                flabel = ICSRC
+                fsuffix = fits
+
+                savefiles = false
+                compress_files = false
+
+                # where to put it (jobroot=job_enddir, archive=ops_enddir)
+                dirpat = hsc_ccd
+                ops_enddir = cat
+                job_enddir = output
+            </sfm_icsrc>
         </file>
         <wrapper>
             job_repo_dir = ${job_repo_dir}
@@ -1390,6 +1405,31 @@ verify_files = False
         metadata_table = desfile
         filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
     </processccd_md_boost>
+    <sfm_icsrc>
+        <hdus>
+            <primary>
+                <r>
+                    <f>
+                        ccd = ccd
+                        visit = visit
+                    </f>
+                    <w>
+                        filter = filter
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+                <o>
+                    <w>
+                        camsym = camsym
+                    </w>
+                </o>
+            </primary>
+        </hdus>
+        metadata_table = catalog
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </sfm_icsrc>
 
 </filetype_metadata>
 
