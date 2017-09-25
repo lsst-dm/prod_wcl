@@ -17,11 +17,13 @@ pipever = w_2017_33_v1
 dataset = ci_hsc               # used in names of butler registry files
 overlap_version = minihsc-v2
 schema_version = w_2017_33-v1     # what version of configs to use
-config_version = w_2017_28-v1     # what version of configs to use
+config_version = w_2017_33-v1     # what version of configs to use
 skymap_version = w_2017_33-v1     # what version of skymap to use
 calib_version = ci_hsc
 ref_cats_path = /datasets/refcats/htm
-fn_butler_template = butler_templates-${config_version}.yaml
+# For testing purpose, use a different version of the butler template yaml
+# Also, the bias/dark/flat of ci_hsc do not have calib_verion in their filenames
+fn_butler_template = ${dataset}_butler_templates-w_2017_33-v2.yaml
 fn_butler_registry_raw = ${dataset}_registry-${config_version}.sqlite3
 fn_butler_registry_calib = ${dataset}_calibRegistry-${config_version}.sqlite3
 
