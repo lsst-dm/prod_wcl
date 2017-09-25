@@ -68,6 +68,7 @@ verify_files = False
                 #calib = ${job_repo_dir}
                 output = ${job_repo_dir}
                 doraise = _flag
+                no-versions = _flag
                 id = visit=${visit} ccd=${ccd}
             </cmdline>
         </exec_1>
@@ -338,6 +339,7 @@ verify_files = False
                 output = ${job_repo_dir}
                 id = tract=${tract} patch=${patch} filter=${filter}
                 doraise = _flag    # option is a flag
+                no-versions = _flag
                 c = doApplyUberCal=False
             </cmdline>
 
@@ -447,6 +449,7 @@ verify_files = False
                 output = ${job_repo_dir}
                 id = tract=${tract} patch=${patch} filter=${filter}
                 doraise = _flag
+                no-versions = _flag
             </cmdline>
             used = file.butler_template, file.butler_registry_raw, file.skymap, list.corr.img_corr, list.tempexp.tempexp
             was_generated_by = file.deepcoadd
@@ -566,6 +569,7 @@ verify_files = False
                 output = ${job_repo_dir}
                 id = tract=${tract} patch=${patch} filter=${filter}
                 doraise = _flag
+                no-versions = _flag
             </cmdline>
             used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_det, file.deepcoadd
             was_generated_by = file.deepcoadd_calexp, file.deepcoadd_det, file.deepcoadd_calexp_background
@@ -685,6 +689,7 @@ verify_files = False
                 _01 = ${job_repo_dir}
                 output = ${job_repo_dir}
                 doraise = _flag
+                no-versions = _flag
                 id = tract=${tract} patch=${patch} filter=
             </cmdline>
             used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_det,file.schema_deepcoadd_peak, file.schema_deepcoadd_mergedet, file.skymap, list.det.deepcoadd_det
@@ -799,6 +804,7 @@ verify_files = False
                 _01 = ${job_repo_dir}
                 output = ${job_repo_dir}
                 doraise = _flag
+                no-versions = _flag
                 id = tract=${tract} patch=${patch} filter=${filter}
             </cmdline>
             used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_meas, file.schema_deepcoadd_mergedet, file.schema_deepcoadd_peak, file.skymap, file.cat_corr_src, file.deepcoadd_calexp, file.deepcoadd_mergedet
@@ -956,6 +962,7 @@ verify_files = False
                 _01 = ${job_repo_dir}
                 output = ${job_repo_dir}
                 doraise = _flag
+                no-versions = _flag
                 id = tract=${tract} patch=${patch} filter=
             </cmdline>
             used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_meas, list.meas.deepcoadd_meas
@@ -1052,6 +1059,7 @@ verify_files = False
                 _01 = ${job_repo_dir}
                 output = ${job_repo_dir}
                 doraise = _flag
+                no-versions = _flag
                 id = tract=${tract} patch=${patch} filter=${filter}
             </cmdline>
             used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_ref, file.schema_deepcoadd_forced_src, file.skymap, file.deepcoadd_calexp, file.deepcoadd_meas, file.deepcoadd_ref
@@ -1159,6 +1167,7 @@ verify_files = False
                 _01 = ${job_repo_dir}
                 output = ${job_repo_dir}
                 doraise = _flag
+                no-versions = _flag
                 C = ${file.config_forcedphotccd.fullname}
                 id = --id visit=${visit} ccd=${ccd} tract=${tract}
             </cmdline>
