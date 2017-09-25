@@ -6,7 +6,7 @@ reqnum = 1                    # a processing request number
 jira_id = DM-11864            # points to a jira_id describing the processing request
 tract = 0                     # which tract to process
 
-blocklist = processccd, drp-patch
+blocklist = processccd, drp-patch #, drp-tract
 target_site = lsstdev
 campaign = MDEV
 pipeline = hscmini
@@ -1151,6 +1151,7 @@ verify_files = False
         </file>
     </forced_phot_coadd>
     <forced_phot_ccd>
+    # NOTE: forced_phot_ccd does not work yet and is not included in mini test
         <exec_1>
             execname = forcedPhotCcd.py
             cmd_hyphen = mixed_gnu  # use single hyphen for single char options and double hyphen for multiple char options
@@ -1158,6 +1159,7 @@ verify_files = False
                 _01 = ${job_repo_dir}
                 output = ${job_repo_dir}
                 doraise = _flag
+                C = ${file.config_forcedphotccd.fullname}
                 id = --id visit=${visit} ccd=${ccd} tract=${tract}
             </cmdline>
             used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_ref, file.schema_forced_src, file.skymap, file.config_forcedphotccd, file.deepcoadd_ref, file.img_corr
