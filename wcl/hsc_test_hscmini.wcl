@@ -854,7 +854,7 @@ verify_files = False
                 id = tract=${tract} patch=${patch} filter=${filter}
             </cmdline>
             used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_meas, file.schema_deepcoadd_mergedet, file.schema_deepcoadd_peak, file.skymap, file.cat_corr_src, file.deepcoadd_calexp, file.deepcoadd_mergedet
-            was_generated_by = file.deepcoadd_meas, file.deepcoadd_measmatch, file.measurecoaddsources_md_boost
+            was_generated_by = file.deepcoadd_meas, file.deepcoadd_measmatch, file.deepcoadd_measmatchfull, file.measurecoaddsources_md_boost
         </exec_1>
         <wrapper>
             job_repo_dir = ${job_repo_dir}
@@ -998,6 +998,20 @@ verify_files = False
                 ops_enddir = coadd
                 job_outtype = deepCoadd-results
             </deepcoadd_measmatch>
+            <deepcoadd_measmatchfull>
+                filetype = deepcoadd_measmatchfull
+
+                filepat = hsc_tract_patch_filter
+                flabel = srcMatchFull
+                fsuffix = fits
+
+                savefiles = true
+                compress_files = false
+
+                dirpat = hsc_tract_patch_filter
+                ops_enddir = coadd
+                job_outtype = deepCoadd-results
+            </deepcoadd_measmatchfull>
             <measurecoaddsources_md_boost>
                 filetype = measurecoaddsources_md_boost
 
@@ -1123,7 +1137,7 @@ verify_files = False
                 id = tract=${tract} patch=${patch} filter=${filter}
             </cmdline>
             used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_ref, file.schema_deepcoadd_forced_src, file.skymap, file.deepcoadd_calexp, file.deepcoadd_meas, file.deepcoadd_ref
-            was_generated_by = file.deepcoadd_forced_src
+            was_generated_by = file.deepcoadd_forced_src, file.forcedphotcoadd_md_boost
         </exec_1>
         <wrapper>
             job_repo_dir = ${job_repo_dir}
@@ -1216,6 +1230,20 @@ verify_files = False
                 ops_enddir = coadd
                 job_outtype = deepCoadd-results
             </deepcoadd_forced_src>
+            <forcedphotcoadd_md_boost>
+                filetype = forcedphotcoadd_md_boost
+
+                filepat = hsc_tract_patch_filter
+                flabel = forcedphotcoadd_md
+                fsuffix = boost
+
+                savefiles = false
+                compress_files = false
+
+                dirpat = generic_repo
+                ops_enddir = boost
+                job_enddir = deep_forcedPhotCoadd_metadata/${filter}/${tract}
+            </forcedphotcoadd_md_boost>
         </file>
     </forced_phot_coadd>
     <forced_phot_ccd>
@@ -1542,6 +1570,26 @@ verify_files = False
         metadata_table = desfile
         filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
     </assemblecoadd_md_boost>
+    <deepcoadd_measmatchfull>
+        <hdus>
+            <primary>
+                <r>
+                    <w>
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+                <o>
+                    <w>
+                        camsym = camsym
+                    </w>
+                </o>
+            </primary>
+        </hdus>
+        metadata_table = desfile
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </deepcoadd_measmatchfull>
     <detectcoaddsources_md_boost>
         <hdus>
             <primary>
@@ -1582,6 +1630,26 @@ verify_files = False
         metadata_table = desfile
         filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
     </measurecoaddsources_md_boost>
+    <forcedphotcoadd_md_boost>
+        <hdus>
+            <primary>
+                <r>
+                    <w>
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+                <o>
+                    <w>
+                        camsym = camsym
+                    </w>
+                </o>
+            </primary>
+        </hdus>
+        metadata_table = desfile
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </forcedphotcoadd_md_boost>
 
 </filetype_metadata>
 
