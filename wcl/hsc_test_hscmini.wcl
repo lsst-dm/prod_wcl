@@ -23,7 +23,7 @@ calib_version = ci_hsc
 ref_cats_path = /datasets/refcats/htm
 # For testing purpose, use a different version of the butler template yaml
 # Also, the bias/dark/flat of ci_hsc do not have calib_verion in their filenames
-fn_butler_template = ${dataset}_butler_templates-w_2017_33-v2.yaml
+fn_butler_template = ${dataset}_butler_templates-w_2017_33-v3.yaml
 fn_butler_registry_raw = ${dataset}_registry-${config_version}.sqlite3
 fn_butler_registry_calib = ${dataset}_calibRegistry-${config_version}.sqlite3
 
@@ -407,7 +407,8 @@ verify_files = False
             <makecoaddtempexp_md_boost>
                 filetype = makecoaddtempexp_md_boost
 
-                filepat = hsc_makecoaddtempexp_md_boost
+                filepat = hsc_tract_patch_filter
+                flabel = makecoaddtempexp_md
                 fsuffix = boost
 
                 savefiles = false
@@ -468,7 +469,7 @@ verify_files = False
                 no-versions = _flag
             </cmdline>
             used = file.butler_template, file.butler_registry_raw, file.skymap, list.corr.img_corr, list.tempexp.tempexp
-            was_generated_by = file.deepcoadd
+            was_generated_by = file.deepcoadd, file.assemblecoadd_md_boost
         </exec_1>
         <wrapper>
             per_file_cmdline = list.corr.img_corr:--selectId visit=$(visit) ccd=$(ccd)
@@ -515,6 +516,21 @@ verify_files = False
                 ops_enddir = coadd
                 job_enddir = deepCoadd/${filter}/${tract}
             </deepCoadd>
+            <assemblecoadd_md_boost>
+                # The corresponding Butler dataset type is deep_safeClipAssembleCoadd_metadatawith the current default config
+                filetype = assemblecoadd_md_boost
+
+                filepat = hsc_tract_patch_filter
+                flabel = assemblecoadd_md
+                fsuffix = boost
+
+                savefiles = false
+                compress_files = false
+
+                dirpat = generic_repo
+                ops_enddir = boost
+                job_enddir = deep_assembleCoadd_metadata/${filter}/${tract}
+            </assemblecoadd_md_boost>
             <butler_registry_raw>
                 # how to name input file
                 filename = ${fn_butler_registry_raw}
@@ -588,7 +604,7 @@ verify_files = False
                 no-versions = _flag
             </cmdline>
             used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_det, file.deepcoadd
-            was_generated_by = file.deepcoadd_calexp, file.deepcoadd_det, file.deepcoadd_calexp_background
+            was_generated_by = file.deepcoadd_calexp, file.deepcoadd_det, file.deepcoadd_calexp_background, file.detectcoaddsources_md_boost
         </exec_1>
         <wrapper>
             job_repo_dir = ${job_repo_dir}
@@ -652,9 +668,9 @@ verify_files = False
                 compress_files = false
 
                 # where to put it
-                dirpat = generic_repo
+                dirpat = hsc_tract_patch_filter
                 ops_enddir = coadd
-                job_enddir = deepCoadd-results/${filter}/${tract}/${patch}
+                job_outtype = deepCoadd-results
             </deepcoadd_calexp>
             <deepcoadd_det>
                 # deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/calexp-%(filter)s-%(tract)d-%(patch)s.fits
@@ -695,6 +711,20 @@ verify_files = False
                 ops_enddir = coadd
                 job_outtype = deepCoadd-results
             </deepcoadd_calexp_background>
+            <detectcoaddsources_md_boost>
+                filetype = detectcoaddsources_md_boost
+
+                filepat = hsc_tract_patch_filter
+                flabel = detectcoaddsources_md
+                fsuffix = boost
+
+                savefiles = false
+                compress_files = false
+
+                dirpat = hsc_tract_patch_filter
+                ops_enddir = boost
+                job_outtype = deepCoadd-results
+            </detectcoaddsources_md_boost>
         </file>
     </detect_coadd_sources>
     <merge_coadd_detections>
@@ -824,7 +854,7 @@ verify_files = False
                 id = tract=${tract} patch=${patch} filter=${filter}
             </cmdline>
             used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_meas, file.schema_deepcoadd_mergedet, file.schema_deepcoadd_peak, file.skymap, file.cat_corr_src, file.deepcoadd_calexp, file.deepcoadd_mergedet
-            was_generated_by = file.deepcoadd_meas, file.deepcoadd_measmatch
+            was_generated_by = file.deepcoadd_meas, file.deepcoadd_measmatch, file.measurecoaddsources_md_boost
         </exec_1>
         <wrapper>
             job_repo_dir = ${job_repo_dir}
@@ -968,6 +998,20 @@ verify_files = False
                 ops_enddir = coadd
                 job_outtype = deepCoadd-results
             </deepcoadd_measmatch>
+            <measurecoaddsources_md_boost>
+                filetype = measurecoaddsources_md_boost
+
+                filepat = hsc_tract_patch_filter
+                flabel = measurecoaddsources_md
+                fsuffix = boost
+
+                savefiles = false
+                compress_files = false
+
+                dirpat = hsc_tract_patch_filter
+                ops_enddir = boost
+                job_outtype = deepCoadd-results
+            </measurecoaddsources_md_boost>
         </file>
     </measure_coadd_sources>
     <merge_coadd_measurements>
@@ -1478,6 +1522,66 @@ verify_files = False
         metadata_table = desfile
         filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
     </makecoaddtempexp_md_boost>
+    <assemblecoadd_md_boost>
+        <hdus>
+            <primary>
+                <r>
+                    <w>
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+                <o>
+                    <w>
+                        camsym = camsym
+                    </w>
+                </o>
+            </primary>
+        </hdus>
+        metadata_table = desfile
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </assemblecoadd_md_boost>
+    <detectcoaddsources_md_boost>
+        <hdus>
+            <primary>
+                <r>
+                    <w>
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+                <o>
+                    <w>
+                        camsym = camsym
+                    </w>
+                </o>
+            </primary>
+        </hdus>
+        metadata_table = desfile
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </detectcoaddsources_md_boost>
+    <measurecoaddsources_md_boost>
+        <hdus>
+            <primary>
+                <r>
+                    <w>
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+                <o>
+                    <w>
+                        camsym = camsym
+                    </w>
+                </o>
+            </primary>
+        </hdus>
+        metadata_table = desfile
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </measurecoaddsources_md_boost>
 
 </filetype_metadata>
 
@@ -1485,7 +1589,6 @@ verify_files = False
 <filename_pattern>
     generic = ${flabel}_${unitname}-r${reqnum}p${attnum:2}.${fsuffix}
     hsc_processccd_md_boost = ${visit:7}-${ccd:3}-r${reqnum}p${attnum:2}.${fsuffix}
-    hsc_makecoaddtempexp_md_boost= makecoaddtempexp_md-${filter}-${tract}-${patch}-r${reqnum}p${attnum:2}.boost
     hsc_visit_ccd = ${flabel}-${visit:7}-${ccd:3}-r${reqnum}p${attnum:2}.${fsuffix}
     hsc_tract_visit_ccd = ${flabel}-${tract:4}-${visit:7}-${ccd:3}-r${reqnum}p${attnum:2}.${fsuffix}
     hsc_tract_patch_filter = ${flabel}-${filter}-${tract}-${patch}-r${reqnum}p${attnum:2}.${fsuffix}
