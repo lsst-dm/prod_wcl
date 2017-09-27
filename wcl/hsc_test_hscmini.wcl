@@ -23,7 +23,7 @@ calib_version = ci_hsc
 ref_cats_path = /datasets/refcats/htm
 # For testing purpose, use a different version of the butler template yaml
 # Also, the bias/dark/flat of ci_hsc do not have calib_verion in their filenames
-fn_butler_template = ${dataset}_butler_templates-w_2017_33-v3.yaml
+fn_butler_template = ${dataset}_butler_templates-w_2017_33-v4.yaml
 fn_butler_registry_raw = ${dataset}_registry-${config_version}.sqlite3
 fn_butler_registry_calib = ${dataset}_calibRegistry-${config_version}.sqlite3
 
@@ -138,13 +138,11 @@ verify_files = False
             </raw>
             <schema_src>
                 filename = schema-src-${schema_version}.fits
-                rename_file = src.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_src>
             <schema_icsrc>
                 filename = schema-icSrc-${schema_version}.fits
-                rename_file = icSrc.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_icsrc>
@@ -646,7 +644,6 @@ verify_files = False
             </butler_template>
             <schema_deepcoadd_det>
                 filename = schema-deepCoadd_det-${schema_version}.fits
-                rename_file = deepCoadd_det.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_deepcoadd_det>
@@ -778,19 +775,16 @@ verify_files = False
             </skymap>
             <schema_deepcoadd_det>
                 filename = schema-deepCoadd_det-${schema_version}.fits
-                rename_file = deepCoadd_det.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_deepcoadd_det>
             <schema_deepcoadd_peak>
                 filename = schema-deepCoadd_peak-${schema_version}.fits
-                rename_file = deepCoadd_peak.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_deepcoadd_peak>
             <schema_deepcoadd_mergedet>
                 filename = schema-deepCoadd_mergeDet-${schema_version}.fits
-                rename_file = deepCoadd_mergeDet.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_deepcoadd_mergedet>
@@ -887,19 +881,16 @@ verify_files = False
             </butler_template>
             <schema_deepcoadd_meas>
                 filename = schema-deepCoadd_meas-${schema_version}.fits
-                rename_file = deepCoadd_meas.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_deepcoadd_meas>
             <schema_deepcoadd_peak>
                 filename = schema-deepCoadd_peak-${schema_version}.fits
-                rename_file = deepCoadd_peak.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_deepcoadd_peak>
             <schema_deepcoadd_mergedet>
                 filename = schema-deepCoadd_mergeDet-${schema_version}.fits
-                rename_file = deepCoadd_mergeDet.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_deepcoadd_mergedet>
@@ -1073,7 +1064,6 @@ verify_files = False
             </butler_template>
             <schema_deepcoadd_meas>
                 filename = schema-deepCoadd_meas-${schema_version}.fits
-                rename_file = deepCoadd_meas.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_deepcoadd_meas>
@@ -1169,13 +1159,11 @@ verify_files = False
             </butler_template>
             <schema_deepcoadd_ref>
                 filename = schema-deepCoadd_ref-${schema_version}.fits
-                rename_file = deepCoadd_ref.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_deepcoadd_ref>
             <schema_deepcoadd_forced_src>
                 filename = schema-deepCoadd_forced_src-${schema_version}.fits
-                rename_file = deepCoadd_forced_src.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_deepcoadd_forced_src>
@@ -1292,7 +1280,6 @@ verify_files = False
             </butler_template>
             <schema_deepcoadd_ref>
                 filename = schema-deepCoadd_ref-${schema_version}.fits
-                rename_file = deepCoadd_ref.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_deepcoadd_ref>
