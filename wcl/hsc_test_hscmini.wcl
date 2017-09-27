@@ -23,7 +23,7 @@ calib_version = ci_hsc
 ref_cats_path = /datasets/refcats/htm
 # For testing purpose, use a different version of the butler template yaml
 # Also, the bias/dark/flat of ci_hsc do not have calib_verion in their filenames
-fn_butler_template = ${dataset}_butler_templates-w_2017_33-v4.yaml
+fn_butler_template = mini_butler_templates-w_2017_33-v5.yaml
 fn_butler_registry_raw = ${dataset}_registry-${config_version}.sqlite3
 fn_butler_registry_calib = ${dataset}_calibRegistry-${config_version}.sqlite3
 
@@ -367,7 +367,6 @@ verify_files = False
             </butler_template>
             <skymap>
                 filename = skyMap-${skymap_version}-mini.pickle
-                rename_file = skyMap.pickle   # science code requires this filename (note: not unique)
                 dirpat = generic_repo
                 job_enddir = deepCoadd
             </skymap>
@@ -548,7 +547,6 @@ verify_files = False
             </butler_template>
             <skymap>
                 filename = skyMap-${skymap_version}-mini.pickle
-                rename_file = skyMap.pickle
                 dirpat = generic_repo
                 job_enddir = deepCoadd
             </skymap>
@@ -769,7 +767,6 @@ verify_files = False
             </butler_template>
             <skymap>
                 filename = skyMap-${skymap_version}-mini.pickle
-                rename_file = skyMap.pickle
                 dirpat = generic_repo
                 job_enddir = deepCoadd
             </skymap>
@@ -896,7 +893,6 @@ verify_files = False
             </schema_deepcoadd_mergedet>
             <skymap>
                 filename = skyMap-${skymap_version}-mini.pickle
-                rename_file = skyMap.pickle
                 dirpat = generic_repo
                 job_enddir = deepCoadd
             </skymap>
@@ -1169,7 +1165,6 @@ verify_files = False
             </schema_deepcoadd_forced_src>
             <skymap>
                 filename = skyMap-${skymap_version}-mini.pickle
-                rename_file = skyMap.pickle
                 dirpat = generic_repo
                 job_enddir = deepCoadd
             </skymap>
@@ -1291,7 +1286,6 @@ verify_files = False
             </schema_deepcoadd_forced_src>
             <skymap>
                 filename = skyMap-${skymap_version}-mini.pickle
-                rename_file = skyMap.pickle
                 dirpat = generic_repo
                 job_enddir = deepCoadd
             </skymap>
