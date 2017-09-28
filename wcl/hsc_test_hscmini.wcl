@@ -115,7 +115,6 @@ verify_files = False
             </darkcor>
             <bf>
                 filename = brighter_fatter_kernel-${calib_version}.pkl
-                rename_file = brighter_fatter_kernel.pkl
                 dirpat = lsst_bf
             </bf>
             <raw>
