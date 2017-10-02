@@ -2,7 +2,7 @@
 
 # using pre-existing butler registry files
 
-reqnum = 1                    # a processing request number
+reqnum = 2                    # a processing request number
 jira_id = DM-11864            # points to a jira_id describing the processing request
 tract = 0                     # which tract to process
 
@@ -24,7 +24,7 @@ calib_version = ci_hsc
 ref_cats_path = /datasets/refcats/htm
 # For testing purpose, use a different version of the butler template yaml
 # Also, the bias/dark/flat of ci_hsc do not have calib_verion in their filenames
-fn_butler_template = mini_butler_templates-w_2017_33-v5.yaml
+fn_butler_template = mini_butler_templates-w_2017_33-v6.yaml
 fn_butler_registry_raw = ${dataset}_registry-${butlerregistry_version}.sqlite3
 fn_butler_registry_calib = ${dataset}_calibRegistry-${butlerregistry_version}.sqlite3
 
@@ -115,7 +115,8 @@ verify_files = False
             </darkcor>
             <bf>
                 filename = brighter_fatter_kernel-${calib_version}.pkl
-                dirpat = lsst_bf
+                dirpat = generic_repo
+                job_enddir = CALIB/BFKERNEL
             </bf>
             <raw>
                 # how to get data
@@ -193,7 +194,7 @@ verify_files = False
 
                 # where to put it (jobroot=rundir, archive=ops_enddir)
                 dirpat = hsc_ccd
-                ops_enddir = cat
+                ops_enddir = src
                 job_enddir = output
             </cat_corr_src>
             <img_corr>
@@ -211,7 +212,7 @@ verify_files = False
 
                 # where to put it (jobroot=job_enddir, archive=ops_enddir)
                 dirpat = hsc_ccd
-                ops_enddir = img
+                ops_enddir = calexp
                 job_enddir = corr
             </img_corr>
             <sfm_srcmatch>
@@ -229,7 +230,7 @@ verify_files = False
 
                 # where to put it (jobroot=job_enddir, archive=ops_enddir)
                 dirpat = hsc_ccd
-                ops_enddir = cat
+                ops_enddir = srcMatch
                 job_enddir = output
             </sfm_srcmatch>
             <sfm_srcmatchfull>
@@ -247,7 +248,7 @@ verify_files = False
 
                 # where to put it (jobroot=job_enddir, archive=ops_enddir)
                 dirpat = hsc_ccd
-                ops_enddir = cat
+                ops_enddir = srcMatchFull
                 job_enddir = output
             </sfm_srcmatchfull>
             <sfm_calexpbkgd>
@@ -261,7 +262,7 @@ verify_files = False
                 compress_files = false
 
                 dirpat = hsc_ccd
-                ops_enddir = other
+                ops_enddir = calexpBkgd
                 job_enddir = corr
             </sfm_calexpbkgd>
             <sfm_oss_thumb>
@@ -275,7 +276,7 @@ verify_files = False
                 compress_files = false
 
                 dirpat = hsc_ccd
-                ops_enddir = img
+                ops_enddir = ossThumb
                 job_enddir = thumbs
             </sfm_oss_thumb>
             <sfm_flattened_thumb>
@@ -289,13 +290,14 @@ verify_files = False
                 compress_files = false
 
                 dirpat = hsc_ccd
-                ops_enddir = img
+                ops_enddir = flattenedThumb
                 job_enddir = thumbs
             </sfm_flattened_thumb>
             <processccd_md_boost>
                 filetype = processccd_md_boost
 
-                filepat = hsc_processccd_md_boost
+                filepat = hsc_visit_ccd
+                flabel = processccd_md
                 fsuffix = boost
 
                 savefiles = true
@@ -317,7 +319,7 @@ verify_files = False
 
                 # where to put it (jobroot=job_enddir, archive=ops_enddir)
                 dirpat = hsc_ccd
-                ops_enddir = cat
+                ops_enddir = icSrc
                 job_enddir = output
             </sfm_icsrc>
         </file>
@@ -386,7 +388,6 @@ verify_files = False
 
                 # where to put it (jobroot=job_enddir, archive=ops_enddir)
                 dirpat = hsc_ccd
-                ops_enddir = img
                 job_enddir = corr
             </img_corr>
 
@@ -408,7 +409,7 @@ verify_files = False
                 # where to put it (jobroot=rundir, archive=ops_enddir)
                 # inside jobroot must match Butler template definition for this type (so sync problem)
                 dirpat = hsc_tract_patch_filter
-                ops_enddir = coadd
+                ops_outtype = warp
                 job_outtype = deepCoadd
             </deepcoadd_tempexp>
             <makecoaddtempexp_md_boost>
@@ -421,9 +422,9 @@ verify_files = False
                 savefiles = false
                 compress_files = false
 
-                dirpat = generic_repo
-                ops_enddir = boost
-                job_enddir = deep_makeCoaddTempExp_metadata/${filter}/${tract}
+                dirpat = hsc_tract_patch_filter
+                ops_outtype = boost
+                job_outtype = deep_makeCoaddTempExp_metadata
             </makecoaddtempexp_md_boost>
         </file>
         <list>
@@ -519,9 +520,9 @@ verify_files = False
                 compress_files = false
 
                 # where to put it
-                dirpat = generic_repo
-                ops_enddir = coadd
-                job_enddir = deepCoadd/${filter}/${tract}
+                dirpat = hsc_tract_patch_filter
+                ops_outtype = coadd
+                job_outtype = deepCoadd
             </deepCoadd>
             <assemblecoadd_md_boost>
                 # The corresponding Butler dataset type is deep_safeClipAssembleCoadd_metadatawith the current default config
@@ -534,9 +535,9 @@ verify_files = False
                 savefiles = false
                 compress_files = false
 
-                dirpat = generic_repo
-                ops_enddir = boost
-                job_enddir = deep_assembleCoadd_metadata/${filter}/${tract}
+                dirpat = hsc_tract_patch_filter
+                ops_outtype = boost
+                job_outtype = deep_safeClipAssembleCoadd_metadata
             </assemblecoadd_md_boost>
             <config_assemblecoadd>
                 filename = config-deep_safeClipAssembleCoadd-${config_version}.py
@@ -631,12 +632,10 @@ verify_files = False
             <deepCoadd>
                 depends = assemble_coadd.file.deepcoadd
                 match = tract, patch, filter
-                #fsuffix = fits
-                #filename = ${patch}.fits
 
                 # where to put it
-                dirpat = generic_repo
-                job_enddir = deepCoadd/${filter}/${tract}
+                dirpat = hsc_tract_patch_filter
+                job_outtype = deepCoadd
             </deepCoadd>
             <config_detectcoaddsources>
                 filename = config-detect-${config_version}.py
@@ -684,7 +683,7 @@ verify_files = False
 
                 # where to put it
                 dirpat = hsc_tract_patch_filter
-                ops_enddir = coadd
+                ops_outtype = coadd
                 job_outtype = deepCoadd-results
             </deepcoadd_calexp>
             <deepcoadd_det>
@@ -704,7 +703,7 @@ verify_files = False
 
                 # where to put it
                 dirpat = hsc_tract_patch_filter
-                ops_enddir = coadd
+                ops_outtype = coadd
                 job_outtype = deepCoadd-results
             </deepcoadd_det>
             <deepcoadd_calexp_background>
@@ -723,7 +722,7 @@ verify_files = False
 
                 # where to put it
                 dirpat = hsc_tract_patch_filter
-                ops_enddir = coadd
+                ops_outtype = coadd
                 job_outtype = deepCoadd-results
             </deepcoadd_calexp_background>
             <detectcoaddsources_md_boost>
@@ -737,8 +736,8 @@ verify_files = False
                 compress_files = false
 
                 dirpat = hsc_tract_patch_filter
-                ops_enddir = boost
-                job_outtype = deepCoadd-results
+                ops_outtype = boost
+                job_outtype = detectCoaddSources_metadata
             </detectcoaddsources_md_boost>
         </file>
     </detect_coadd_sources>
@@ -834,7 +833,7 @@ verify_files = False
 
                 # where to put it
                 dirpat = hsc_patch_merged
-                ops_enddir = coadd
+                ops_outtype = coadd
                 job_outtype = deepCoadd-results
             </deepcoadd_mergedet>
         </file>
@@ -972,7 +971,7 @@ verify_files = False
 
                 # where to put it
                 dirpat = hsc_patch_merged
-                ops_enddir = coadd
+                ops_outtype = coadd
                 job_outtype = deepCoadd-results
             </deepcoadd_mergedet>
 
@@ -993,7 +992,7 @@ verify_files = False
 
                 # where to put it
                 dirpat = hsc_tract_patch_filter
-                ops_enddir = coadd
+                ops_outtype = coadd
                 job_outtype = deepCoadd-results
             </deepcoadd_meas>
             <deepcoadd_measmatch>
@@ -1012,7 +1011,7 @@ verify_files = False
 
                 # where to put it
                 dirpat = hsc_tract_patch_filter
-                ops_enddir = coadd
+                ops_outtype = coadd
                 job_outtype = deepCoadd-results
             </deepcoadd_measmatch>
             <deepcoadd_measmatchfull>
@@ -1026,7 +1025,7 @@ verify_files = False
                 compress_files = false
 
                 dirpat = hsc_tract_patch_filter
-                ops_enddir = coadd
+                ops_outtype = coadd
                 job_outtype = deepCoadd-results
             </deepcoadd_measmatchfull>
             <measurecoaddsources_md_boost>
@@ -1040,8 +1039,8 @@ verify_files = False
                 compress_files = false
 
                 dirpat = hsc_tract_patch_filter
-                ops_enddir = boost
-                job_outtype = deepCoadd-results
+                ops_outtype = boost
+                job_outtype = measureCoaddSources_metadata
             </measurecoaddsources_md_boost>
         </file>
     </measure_coadd_sources>
@@ -1122,7 +1121,7 @@ verify_files = False
 
                 # where to put it
                 dirpat = hsc_patch_merged
-                ops_enddir = coadd
+                ops_outtype = coadd
                 job_outtype = deepCoadd-results
             </deepcoadd_ref>
         </file>
@@ -1250,7 +1249,7 @@ verify_files = False
 
                 # where to put it
                 dirpat = hsc_tract_patch_filter
-                ops_enddir = coadd
+                ops_outtype = coadd
                 job_outtype = deepCoadd-results
             </deepcoadd_forced_src>
             <forcedphotcoadd_md_boost>
@@ -1263,9 +1262,9 @@ verify_files = False
                 savefiles = false
                 compress_files = false
 
-                dirpat = generic_repo
-                ops_enddir = boost
-                job_enddir = deep_forcedPhotCoadd_metadata/${filter}/${tract}
+                dirpat = hsc_tract_patch_filter
+                ops_outtype = boost
+                job_outtype = deepCoadd_forced_metadata
             </forcedphotcoadd_md_boost>
         </file>
     </forced_phot_coadd>
@@ -1369,7 +1368,7 @@ verify_files = False
                 # where to put it
                 # %(pointing)05d/%(filter)s/tract%(tract)d/
                 dirpat = hsc_tract_patch_filter
-                ops_enddir = coadd
+                ops_outtype = boost
                 job_endir = tract${tract}
             </forced_src>
         </file>
@@ -1678,7 +1677,6 @@ verify_files = False
 
 <filename_pattern>
     generic = ${flabel}_${unitname}-r${reqnum}p${attnum:2}.${fsuffix}
-    hsc_processccd_md_boost = ${visit:7}-${ccd:3}-r${reqnum}p${attnum:2}.${fsuffix}
     hsc_visit_ccd = ${flabel}-${visit:7}-${ccd:3}-r${reqnum}p${attnum:2}.${fsuffix}
     hsc_tract_visit_ccd = ${flabel}-${tract:4}-${visit:7}-${ccd:3}-r${reqnum}p${attnum:2}.${fsuffix}
     hsc_tract_patch_filter = ${flabel}-${filter}-${tract}-${patch}-r${reqnum}p${attnum:2}.${fsuffix}
@@ -1702,19 +1700,16 @@ verify_files = False
         #ops = MTN/HSC/${dateobs}/${visit}
         runtime = ${job_repo_dir}/${field}/${dateobs}/${pointing:5}/${filter}
     </hsc_raw>
-    <lsst_bf>
-        runtime = ${job_repo_dir}/CALIB/BFKERNEL
-    </lsst_bf>
     <hsc_ccd>
-        ops = ${ops_run_dir}/${ops_enddir}
+        ops = ${ops_run_dir}/sfm/${filter}/${pointing:5}/${ops_enddir}
         runtime = ${job_repo_dir}/${pointing:5}/${filter}/${job_enddir}
     </hsc_ccd>
     <hsc_tract_patch_filter>
-        ops = ${ops_run_dir}/${ops_enddir}
+        ops = ${ops_run_dir}/${ops_outtype}/${filter}/${tract}/${patch}
         runtime = ${job_repo_dir}/${job_outtype}/${filter}/${tract}/${patch}
     </hsc_tract_patch_filter>
     <hsc_patch_merged>
-        ops = ${ops_run_dir}/${ops_enddir}
+        ops = ${ops_run_dir}/${ops_outtype}/merged/${tract}/${patch}
         runtime = ${job_repo_dir}/${job_outtype}/merged/${tract}/${patch}
     </hsc_patch_merged>
     <generic_repo>
