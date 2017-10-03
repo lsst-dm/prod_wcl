@@ -43,7 +43,7 @@ verify_files = False
 # different blocks can have different job parallelism
 <block>
     <processccd>
-        modulelist = processccd
+        modulelist = query_processccd, processccd
         divide_jobs_by = ccd, filter
     </processccd>
     <drp-patch>
@@ -56,6 +56,15 @@ verify_files = False
 </block>
 
 <module>
+    <query_processccd>
+        noop = True
+        <list>
+            <allfiles>
+                exec = processccd_query.py
+                args = --section ${submit_des_db_section} --qoutfile ${qoutfile} --tract ${tract} --overlap_version ${overlap_version} --calib_version ${calib_version}
+            </allfiles>
+        </list>
+    </query_processccd>
     <processccd>
         <exec_1>
             execname = processCcd.py
@@ -77,39 +86,20 @@ verify_files = False
         </exec_1>
         <file>
             <biascor>
-                query_table = calibration
-                join calibration.filename=ops_calibration_lookup.filename
-                query_fields = filetype, ops_calibration_lookup.version
-                version = ${calib_version}
-                filetype = cal_biascor_hsc
-                output_fields = filename, calib_date, ccd
-                match = ccd
-
+                depends query_processccd.list.allfiles.cal_biascor_hsc
+                match = imgname
                 dirpat = lsst_calib
                 calibtype = BIAS
             </biascor>
             <dflatcor>
-                query_table = calibration
-                join calibration.filename=ops_calibration_lookup.filename
-                query_fields = filetype, ops_calibration_lookup.version
-                version = ${calib_version}
-                filetype = cal_dflatcor_hsc
-                output_fields = filename, calib_date, filter, ccd
-                match = filter, ccd
-
-                #BROKEN filename = FLAT-${calibdate}-${filter}-${ccd:3}.fits
+                depends query_processccd.list.allfiles.cal_dflatcor_hsc
+                match = imgname
                 dirpat = lsst_calib_filter
                 calibtype = FLAT
             </dflatcor>
             <darkcor>
-                query_table = calibration
-                join calibration.filename=ops_calibration_lookup.filename
-                query_fields = filetype, ops_calibration_lookup.version
-                version = ${calib_version}
-                filetype = cal_darkcor_hsc
-                output_fields = filename, calib_date, ccd
-                match = ccd
-
+                depends query_processccd.list.allfiles.cal_darkcor_hsc
+                match = imgname
                 dirpat = lsst_calib
                 calibtype = DARK
             </darkcor>
@@ -119,19 +109,8 @@ verify_files = False
                 job_enddir = CALIB/BFKERNEL
             </bf>
             <raw>
-                # how to get data
-                exec = hsc_dummy_query_raw.py
-                #args = --qoutfile ${qoutfile} --tract ${tract} --tractinfo ${tractinfo} --section ${submit_des_db_section}
-                args = --qoutfile ${qoutfile} --tract ${tract} --section ${submit_des_db_section} --overlap_version ${overlap_version}
-                #query_table = image
-                #query_fields = filetype, overlap.tract
-                #join = image.visit=overlap.visit, image.ccd=overlap.ccd
-                filetype = hsc_raw
-                #output_fields = filename,visit,filter,ccd,pointing,overlap.tract,field,dateobs
-                output_fields = filename,visit,filter,ccd,pointing,tract,field,dateobs
-
-                #
-                match = visit, filter, ccd, pointing
+                depends query_processccd.list.allfiles.raw
+                match = imgname, visit, filter, ccd, pointing
 
                 # how to put files in job scratch directory
                 dirpat = hsc_raw
@@ -330,7 +309,7 @@ verify_files = False
             ref_cats_root = ${ref_cats_path}
         </wrapper>
         wrappername = genwrap_lsst.py
-        wrapperloop = visit,filter,ccd, pointing   # filter included here so can match dflatcor on it (pointing for output paths)
+        wrapperloop = imgname,visit,filter,ccd,pointing   # filter included here so can match dflatcor on it (pointing for output paths)
         loopobj = file.raw   # what file to use to determine wrapper loop values
         modnamepat = ${modnamepat_tract_visit_ccd_filter}
     </processccd>
