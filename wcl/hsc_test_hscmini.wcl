@@ -37,7 +37,7 @@ unitname=${camsym}t${tract}    # reqnum + unitname + attnum must be unique every
 purge_job_dir = never
 compress_cleanup = False
 
-use_qcf = True  # turning off the DESDM QCFramework as wasn't set up correctly in environment.  Need to investigate
+use_qcf = True
 verify_files = False
 
 # different blocks can have different job parallelism
