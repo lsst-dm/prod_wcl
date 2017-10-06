@@ -2,29 +2,31 @@
 
 # using pre-existing butler registry files
 
-reqnum = 15                   # a processing request number 
-jira_id = DM-10701            # points to a jira_id describing the processing request
+reqnum = 2                    # a processing request number
+jira_id = DM-11864            # points to a jira_id describing the processing request
 tract = 0                     # which tract to process
 
-blocklist = processccd, drp-patch
-target_site = slsstdev
+blocklist = processccd, drp-patch #, drp-tract
+target_site = lsstdev
 campaign = MDEV
 pipeline = hscmini
-pipeprod = mgstack   
-#pipever = w_2017_14
-pipever = w_2017_28
+pipeprod = BPSstack
+pipever = w_2017_33_v1
 
 
 dataset = ci_hsc               # used in names of butler registry files
-overlap_version = ci_hsc-v2
-#config_version = w_2017_14-v2     # what version of configs to use
-#skymap_version = w_2017_14-v2     # what version of skymap to use
-config_version = w_2017_28-v1     # what version of configs to use
-skymap_version = w_2017_28-v1     # what version of skymap to use
-fn_refcat_tarball = ps1_pv3_3pi_20170110.tar   # what reference catalog to use
-fn_butler_template = butler_templates-${config_version}.yaml
-fn_butler_registry_raw = ${dataset}_registry-${config_version}.sqlite3
-fn_butler_registry_calib = ${dataset}_calibRegistry-${config_version}.sqlite3
+overlap_version = minihsc-v2
+butlerregistry_version = w_2017_33-v1  # what version of butler sqlite3 registries to use
+schema_version = w_2017_33-v1     # what version of configs to use
+config_version = w_2017_33-v2     # what version of configs to use
+skymap_version = w_2017_33-v1     # what version of skymap to use
+calib_version = ci_hsc
+ref_cats_path = /datasets/refcats/htm
+# For testing purpose, use a different version of the butler template yaml
+# Also, the bias/dark/flat of ci_hsc do not have calib_verion in their filenames
+fn_butler_template = mini_butler_templates-w_2017_33-v6.yaml
+fn_butler_registry_raw = ${dataset}_registry-${butlerregistry_version}.sqlite3
+fn_butler_registry_calib = ${dataset}_calibRegistry-${butlerregistry_version}.sqlite3
 
 job_repo_dir = jobrepo
 ops_run_dir = ${project}/${pipeline}/${campaign}/r${reqnum}/${unitname}/p${attnum:2}
@@ -35,12 +37,12 @@ unitname=${camsym}t${tract}    # reqnum + unitname + attnum must be unique every
 purge_job_dir = never
 compress_cleanup = False
 
-use_qcf = True  # turning off the DESDM QCFramework as wasn't set up correctly in environment.  Need to investigate
+use_qcf = True
 verify_files = False
 
 # different blocks can have different job parallelism
 <block>
-    <processccd>                  
+    <processccd>
         modulelist = processccd
         divide_jobs_by = ccd, filter
     </processccd>
@@ -60,32 +62,37 @@ verify_files = False
             cmd_hyphen = mixed_gnu  # use single hyphen for single char options and double hyphen for multiple char options
 
             # open provenance model
-            used = file.butler_template,file.butler_registry_raw,file.butler_registry_calib,file.schema_src,file.schema_icsrc,file.bf,file.raw,file.biascor,file.dflatcor,file.darkcor,file.ref_cat
-            was_generated_by = file.cat_corr_src, file.img_corr 
-            # ancestry = 
+            used = file.butler_template,file.butler_registry_raw,file.butler_registry_calib,file.schema_src,file.schema_icsrc,file.config_processccd,file.bf,file.raw,file.biascor,file.dflatcor,file.darkcor
+            was_generated_by = file.cat_corr_src, file.img_corr, file.sfm_srcmatch, file.sfm_srcmatchfull, file.sfm_calexpbkgd, file.sfm_oss_thumb, file.sfm_flattened_thumb, file.processccd_md_boost, file.sfm_icsrc
+            # ancestry =
 
             <cmdline>
                 _01 = ${job_repo_dir}
                 #calib = ${job_repo_dir}
                 output = ${job_repo_dir}
                 doraise = _flag
+                no-versions = _flag
                 id = visit=${visit} ccd=${ccd}
             </cmdline>
         </exec_1>
         <file>
             <biascor>
                 query_table = calibration
-                query_fields = filetype
+                join calibration.filename=ops_calibration_lookup.filename
+                query_fields = filetype, ops_calibration_lookup.version
+                version = ${calib_version}
                 filetype = cal_biascor_hsc
                 output_fields = filename, calib_date, ccd
                 match = ccd
-    
-                dirpat = lsst_calib 
+
+                dirpat = lsst_calib
                 calibtype = BIAS
             </biascor>
             <dflatcor>
                 query_table = calibration
-                query_fields = filetype
+                join calibration.filename=ops_calibration_lookup.filename
+                query_fields = filetype, ops_calibration_lookup.version
+                version = ${calib_version}
                 filetype = cal_dflatcor_hsc
                 output_fields = filename, calib_date, filter, ccd
                 match = filter, ccd
@@ -96,24 +103,21 @@ verify_files = False
             </dflatcor>
             <darkcor>
                 query_table = calibration
-                query_fields = filetype
+                join calibration.filename=ops_calibration_lookup.filename
+                query_fields = filetype, ops_calibration_lookup.version
+                version = ${calib_version}
                 filetype = cal_darkcor_hsc
                 output_fields = filename, calib_date, ccd
                 match = ccd
 
-                dirpat = lsst_calib 
+                dirpat = lsst_calib
                 calibtype = DARK
             </darkcor>
             <bf>
-                filename = brighter_fatter_kernel.pkl
-                dirpat = lsst_bf
-            </bf>
-            <ref_cat>
-                # reference catalog is a small set of files, so managing it as tarball
-                filename = ${fn_refcat_tarball}
+                filename = brighter_fatter_kernel-${calib_version}.pkl
                 dirpat = generic_repo
-                job_enddir = ref_cats
-            </ref_cat>
+                job_enddir = CALIB/BFKERNEL
+            </bf>
             <raw>
                 # how to get data
                 exec = hsc_dummy_query_raw.py
@@ -126,25 +130,28 @@ verify_files = False
                 #output_fields = filename,visit,filter,ccd,pointing,overlap.tract,field,dateobs
                 output_fields = filename,visit,filter,ccd,pointing,tract,field,dateobs
 
-                #  
+                #
                 match = visit, filter, ccd, pointing
 
-                # how to put files in job scratch directory 
+                # how to put files in job scratch directory
                 dirpat = hsc_raw
                 rename_file = HSC-${visit:7}-${ccd:3}.fits     # Butler requires file to have a different name
             </raw>
             <schema_src>
-                filename = schema-src-${config_version}.fits
-                rename_file = src.fits
+                filename = schema-src-${schema_version}.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_src>
             <schema_icsrc>
-                filename = schema-icSrc-${config_version}.fits
-                rename_file = icSrc.fits
+                filename = schema-icSrc-${schema_version}.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_icsrc>
+            <config_processccd>
+                filename = config-processCcd-${config_version}.py
+                dirpat = generic_repo
+                job_enddir = config
+            </config_processccd>
             <butler_registry_raw>
                 # how to name input file
                 filename = ${fn_butler_registry_raw}
@@ -187,7 +194,7 @@ verify_files = False
 
                 # where to put it (jobroot=rundir, archive=ops_enddir)
                 dirpat = hsc_ccd
-                ops_enddir = cat
+                ops_enddir = src
                 job_enddir = output
             </cat_corr_src>
             <img_corr>
@@ -205,15 +212,122 @@ verify_files = False
 
                 # where to put it (jobroot=job_enddir, archive=ops_enddir)
                 dirpat = hsc_ccd
-                ops_enddir = img
+                ops_enddir = calexp
                 job_enddir = corr
             </img_corr>
+            <sfm_srcmatch>
+                #"repo/00671/HSC-I/output/SRCMATCH-0903986-016.fits"
+                filetype = sfm_srcmatch
+
+                # how to name output file
+                filepat = hsc_visit_ccd
+                flabel = SRCMATCH
+                fsuffix = fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it (jobroot=job_enddir, archive=ops_enddir)
+                dirpat = hsc_ccd
+                ops_enddir = srcMatch
+                job_enddir = output
+            </sfm_srcmatch>
+            <sfm_srcmatchfull>
+                #"repo/00671/HSC-I/output/SRCMATCHFULL-0903986-016.fits"
+                filetype = sfm_srcmatchfull
+
+                # how to name output file
+                filepat = hsc_visit_ccd
+                flabel = SRCMATCHFULL
+                fsuffix = fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it (jobroot=job_enddir, archive=ops_enddir)
+                dirpat = hsc_ccd
+                ops_enddir = srcMatchFull
+                job_enddir = output
+            </sfm_srcmatchfull>
+            <sfm_calexpbkgd>
+                filetype = sfm_calexpbkgd
+
+                filepat = hsc_visit_ccd
+                flabel = BKGD
+                fsuffix = fits
+
+                savefiles = true
+                compress_files = false
+
+                dirpat = hsc_ccd
+                ops_enddir = calexpBkgd
+                job_enddir = corr
+            </sfm_calexpbkgd>
+            <sfm_oss_thumb>
+                filetype = sfm_oss_thumb
+
+                filepat = hsc_visit_ccd
+                flabel = oss
+                fsuffix = png
+
+                savefiles = true
+                compress_files = false
+
+                dirpat = hsc_ccd
+                ops_enddir = ossThumb
+                job_enddir = thumbs
+            </sfm_oss_thumb>
+            <sfm_flattened_thumb>
+                filetype = sfm_flattened_thumb
+
+                filepat = hsc_visit_ccd
+                flabel = flattened
+                fsuffix = png
+
+                savefiles = true
+                compress_files = false
+
+                dirpat = hsc_ccd
+                ops_enddir = flattenedThumb
+                job_enddir = thumbs
+            </sfm_flattened_thumb>
+            <processccd_md_boost>
+                filetype = processccd_md_boost
+
+                filepat = hsc_visit_ccd
+                flabel = processccd_md
+                fsuffix = boost
+
+                savefiles = true
+                compress_files = false
+
+                dirpat = hsc_ccd
+                ops_enddir = boost
+                job_enddir = processCcd_metadata
+            </processccd_md_boost>
+            <sfm_icsrc>
+                filetype = sfm_icsrc
+
+                filepat = hsc_visit_ccd
+                flabel = ICSRC
+                fsuffix = fits
+
+                savefiles = false
+                compress_files = false
+
+                # where to put it (jobroot=job_enddir, archive=ops_enddir)
+                dirpat = hsc_ccd
+                ops_enddir = icSrc
+                job_enddir = output
+            </sfm_icsrc>
         </file>
         <wrapper>
             job_repo_dir = ${job_repo_dir}
             mapper = lsst.obs.hsc.HscMapper                     # what mapper to use
             butler_template = ${file.butler_template.fullname}  # what file entry is the butler template (so we're not hardcoding section name)
-            untar_files = ${file.ref_cat.fullname}              # need to untar reference catalog
+            ref_cats_root = ${ref_cats_path}
         </wrapper>
         wrappername = genwrap_lsst.py
         wrapperloop = visit,filter,ccd, pointing   # filter included here so can match dflatcor on it (pointing for output paths)
@@ -232,14 +346,20 @@ verify_files = False
                 output = ${job_repo_dir}
                 id = tract=${tract} patch=${patch} filter=${filter}
                 doraise = _flag    # option is a flag
+                no-versions = _flag
                 c = doApplyUberCal=False
             </cmdline>
 
             # open provenance model (minus was_derived_from)
-            used = list.corr.img_corr, file.skymap, file.butler_registry_raw, file.butler_template
-            was_generated_by = file.deepcoadd_tempexp
+            used = list.corr.img_corr, file.skymap, file.butler_registry_raw, file.butler_template, file.config_makecoaddtempexp
+            was_generated_by = file.deepcoadd_tempexp, file.makecoaddtempexp_md_boost
         </exec_1>
         <file>
+            <config_makecoaddtempexp>
+                filename = config-deep_makeCoaddTempExp-${config_version}.py
+                dirpat = generic_repo
+                job_enddir = config
+            </config_makecoaddtempexp>
             <butler_registry_raw>    # generated by first step in pipeline
                 # how to name input file
                 filename = ${fn_butler_registry_raw}
@@ -253,13 +373,12 @@ verify_files = False
                 # how to name input file
                 filename = ${fn_butler_template}
 
-                # where to put it 
+                # where to put it
                 dirpat = generic_norepo
                 job_enddir = config
             </butler_template>
             <skymap>
-                filename = skyMap-${skymap_version}.pickle
-                rename_file = skyMap.pickle   # science code requires this filename (note: not unique)
+                filename = skyMap-${skymap_version}-mini.pickle
                 dirpat = generic_repo
                 job_enddir = deepCoadd
             </skymap>
@@ -269,12 +388,12 @@ verify_files = False
 
                 # where to put it (jobroot=job_enddir, archive=ops_enddir)
                 dirpat = hsc_ccd
-                ops_enddir = img
                 job_enddir = corr
             </img_corr>
 
             ### output files
             <deepcoadd_tempexp>
+            # TODO: Rename this to match better with deepCoadd_directWarp
                 # what metadata to save
                 filetype = deepcoadd_tempexp
 
@@ -290,9 +409,23 @@ verify_files = False
                 # where to put it (jobroot=rundir, archive=ops_enddir)
                 # inside jobroot must match Butler template definition for this type (so sync problem)
                 dirpat = hsc_tract_patch_filter
-                ops_enddir = coadd
+                ops_outtype = warp
                 job_outtype = deepCoadd
             </deepcoadd_tempexp>
+            <makecoaddtempexp_md_boost>
+                filetype = makecoaddtempexp_md_boost
+
+                filepat = hsc_tract_patch_filter
+                flabel = makecoaddtempexp_md
+                fsuffix = boost
+
+                savefiles = false
+                compress_files = false
+
+                dirpat = hsc_tract_patch_filter
+                ops_outtype = boost
+                job_outtype = deep_makeCoaddTempExp_metadata
+            </makecoaddtempexp_md_boost>
         </file>
         <list>
             <corr>
@@ -301,17 +434,17 @@ verify_files = False
                 #args = --section ${submit_des_db_section} --tractinfo ${tractinfo} --tract ${tract} --qoutfile ${qoutfile} --pfw_attempt_id ${query_pfw_attempt_id}
 
                 query_table = image
-                query_fields = filetype, overlap.tract, pfw_attempt_id
-                join = image.visit=overlap.visit, image.ccd=overlap.ccd
+                query_fields = filetype, ccd_overlap_patch.tract, pfw_attempt_id
+                join = image.visit=ccd_overlap_patch.visit, image.ccd=ccd_overlap_patch.ccd
                 filetype = img_corr
-                output_fields = filename,visit,filter,ccd,pointing,overlap.tract,overlap.patch
+                output_fields = filename,visit,filter,ccd,pointing,ccd_overlap_patch.tract,ccd_overlap_patch.patch
 
                 # how to create lists
                 divide_by = tract, patch, visit, filter      # define_quanta
                 columns = img_corr.fullname, tract, patch, visit, ccd, filter
 
                 # what to name the list file
-                filepat = list_tract_patch_visit_filter 
+                filepat = list_tract_patch_visit_filter
                 flabel = ${modulename}_corr
                 fsuffix = list
 
@@ -341,9 +474,10 @@ verify_files = False
                 output = ${job_repo_dir}
                 id = tract=${tract} patch=${patch} filter=${filter}
                 doraise = _flag
+                no-versions = _flag
             </cmdline>
-            used = file.butler_template, file.butler_registry_raw, file.skymap, list.corr.img_corr, list.tempexp.tempexp
-            was_generated_by = file.deepcoadd
+            used = file.butler_template, file.butler_registry_raw, file.config_assemblecoadd, file.skymap, list.corr.img_corr, list.tempexp.tempexp
+            was_generated_by = file.deepcoadd, file.assemblecoadd_md_boost
         </exec_1>
         <wrapper>
             per_file_cmdline = list.corr.img_corr:--selectId visit=$(visit) ccd=$(ccd)
@@ -375,7 +509,7 @@ verify_files = False
                 filetype = deepcoadd
 
                 # how to name output file
-                ### changed in obs_base/policy/exposures.yaml 
+                ### changed in obs_base/policy/exposures.yaml
                 filepat = hsc_tract_patch_filter
                 flabel = deepCoadd
                 fsuffix = fits
@@ -386,10 +520,30 @@ verify_files = False
                 compress_files = false
 
                 # where to put it
-                dirpat = generic_repo
-                ops_enddir = coadd
-                job_enddir = deepCoadd/${filter}/${tract}
+                dirpat = hsc_tract_patch_filter
+                ops_outtype = coadd
+                job_outtype = deepCoadd
             </deepCoadd>
+            <assemblecoadd_md_boost>
+                # The corresponding Butler dataset type is deep_safeClipAssembleCoadd_metadatawith the current default config
+                filetype = assemblecoadd_md_boost
+
+                filepat = hsc_tract_patch_filter
+                flabel = assemblecoadd_md
+                fsuffix = boost
+
+                savefiles = false
+                compress_files = false
+
+                dirpat = hsc_tract_patch_filter
+                ops_outtype = boost
+                job_outtype = deep_safeClipAssembleCoadd_metadata
+            </assemblecoadd_md_boost>
+            <config_assemblecoadd>
+                filename = config-deep_safeClipAssembleCoadd-${config_version}.py
+                dirpat = generic_repo
+                job_enddir = config
+            </config_assemblecoadd>
             <butler_registry_raw>
                 # how to name input file
                 filename = ${fn_butler_registry_raw}
@@ -408,8 +562,7 @@ verify_files = False
                 job_enddir = config
             </butler_template>
             <skymap>
-                filename = skyMap-${skymap_version}.pickle
-                rename_file = skyMap.pickle
+                filename = skyMap-${skymap_version}-mini.pickle
                 dirpat = generic_repo
                 job_enddir = deepCoadd
             </skymap>
@@ -423,7 +576,7 @@ verify_files = False
                 columns = img_corr.fullname, tract, patch, visit, ccd, filter
 
                 # what to name the list
-                filepat = list_tract_patch_filter 
+                filepat = list_tract_patch_filter
                 flabel = ${modulename}_corr
                 fsuffix = list
 
@@ -440,7 +593,7 @@ verify_files = False
                 columns = tempexp.fullname, tract, patch, visit, filter
 
                 # what to name the list
-                filepat = list_tract_patch_filter 
+                filepat = list_tract_patch_filter
                 flabel = ${modulename}_tempexp
                 fsuffix = list
 
@@ -460,9 +613,10 @@ verify_files = False
                 output = ${job_repo_dir}
                 id = tract=${tract} patch=${patch} filter=${filter}
                 doraise = _flag
+                no-versions = _flag
             </cmdline>
-            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_det, file.deepcoadd
-            was_generated_by = file.deepcoadd_calexp, file.deepcoadd_det, file.deepcoadd_calexp_background
+            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_det, file.config_detectcoaddsources, file.deepcoadd
+            was_generated_by = file.deepcoadd_calexp, file.deepcoadd_det, file.deepcoadd_calexp_background, file.detectcoaddsources_md_boost
         </exec_1>
         <wrapper>
             job_repo_dir = ${job_repo_dir}
@@ -478,13 +632,16 @@ verify_files = False
             <deepCoadd>
                 depends = assemble_coadd.file.deepcoadd
                 match = tract, patch, filter
-                #fsuffix = fits
-                #filename = ${patch}.fits
 
                 # where to put it
-                dirpat = generic_repo
-                job_enddir = deepCoadd/${filter}/${tract}
+                dirpat = hsc_tract_patch_filter
+                job_outtype = deepCoadd
             </deepCoadd>
+            <config_detectcoaddsources>
+                filename = config-detect-${config_version}.py
+                dirpat = generic_repo
+                job_enddir = config
+            </config_detectcoaddsources>
             <butler_registry_raw>
                 # how to name input file
                 filename = ${fn_butler_registry_raw}
@@ -503,8 +660,7 @@ verify_files = False
                 job_enddir = config
             </butler_template>
             <schema_deepcoadd_det>
-                filename = schema-deepCoadd_det-${config_version}.fits
-                rename_file = deepCoadd_det.fits
+                filename = schema-deepCoadd_det-${schema_version}.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_deepcoadd_det>
@@ -526,9 +682,9 @@ verify_files = False
                 compress_files = false
 
                 # where to put it
-                dirpat = generic_repo
-                ops_enddir = coadd
-                job_enddir = deepCoadd-results/${filter}/${tract}/${patch}
+                dirpat = hsc_tract_patch_filter
+                ops_outtype = coadd
+                job_outtype = deepCoadd-results
             </deepcoadd_calexp>
             <deepcoadd_det>
                 # deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/calexp-%(filter)s-%(tract)d-%(patch)s.fits
@@ -547,7 +703,7 @@ verify_files = False
 
                 # where to put it
                 dirpat = hsc_tract_patch_filter
-                ops_enddir = coadd
+                ops_outtype = coadd
                 job_outtype = deepCoadd-results
             </deepcoadd_det>
             <deepcoadd_calexp_background>
@@ -566,9 +722,23 @@ verify_files = False
 
                 # where to put it
                 dirpat = hsc_tract_patch_filter
-                ops_enddir = coadd
+                ops_outtype = coadd
                 job_outtype = deepCoadd-results
             </deepcoadd_calexp_background>
+            <detectcoaddsources_md_boost>
+                filetype = detectcoaddsources_md_boost
+
+                filepat = hsc_tract_patch_filter
+                flabel = detectcoaddsources_md
+                fsuffix = boost
+
+                savefiles = false
+                compress_files = false
+
+                dirpat = hsc_tract_patch_filter
+                ops_outtype = boost
+                job_outtype = detectCoaddSources_metadata
+            </detectcoaddsources_md_boost>
         </file>
     </detect_coadd_sources>
     <merge_coadd_detections>
@@ -579,9 +749,10 @@ verify_files = False
                 _01 = ${job_repo_dir}
                 output = ${job_repo_dir}
                 doraise = _flag
+                no-versions = _flag
                 id = tract=${tract} patch=${patch} filter=
             </cmdline>
-            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_det,file.schema_deepcoadd_peak, file.schema_deepcoadd_mergedet, file.skymap, list.det.deepcoadd_det
+            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_det,file.schema_deepcoadd_peak, file.schema_deepcoadd_mergedet, file.config_mergecoadddetections, file.skymap, list.det.deepcoadd_det
             was_generated_by = file.deepcoadd_mergedet
         </exec_1>
         <wrapper>
@@ -596,6 +767,11 @@ verify_files = False
         wrapperloop = tract, patch
         <file>
             ### inputs
+            <config_mergecoadddetections>
+                filename = config-mergeDetect-${config_version}.py
+                dirpat = generic_repo
+                job_enddir = config
+            </config_mergecoadddetections>
             <butler_registry_raw>
                 # how to name input file
                 filename = ${fn_butler_registry_raw}
@@ -614,26 +790,22 @@ verify_files = False
                 job_enddir = config
             </butler_template>
             <skymap>
-                filename = skyMap-${skymap_version}.pickle
-                rename_file = skyMap.pickle
+                filename = skyMap-${skymap_version}-mini.pickle
                 dirpat = generic_repo
                 job_enddir = deepCoadd
             </skymap>
             <schema_deepcoadd_det>
-                filename = schema-deepCoadd_det-${config_version}.fits
-                rename_file = deepCoadd_det.fits
+                filename = schema-deepCoadd_det-${schema_version}.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_deepcoadd_det>
             <schema_deepcoadd_peak>
-                filename = schema-deepCoadd_peak-${config_version}.fits
-                rename_file = deepCoadd_peak.fits
+                filename = schema-deepCoadd_peak-${schema_version}.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_deepcoadd_peak>
             <schema_deepcoadd_mergedet>
-                filename = schema-deepCoadd_mergeDet-${config_version}.fits
-                rename_file = deepCoadd_mergeDet.fits
+                filename = schema-deepCoadd_mergeDet-${schema_version}.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_deepcoadd_mergedet>
@@ -661,7 +833,7 @@ verify_files = False
 
                 # where to put it
                 dirpat = hsc_patch_merged
-                ops_enddir = coadd
+                ops_outtype = coadd
                 job_outtype = deepCoadd-results
             </deepcoadd_mergedet>
         </file>
@@ -693,16 +865,17 @@ verify_files = False
                 _01 = ${job_repo_dir}
                 output = ${job_repo_dir}
                 doraise = _flag
+                no-versions = _flag
                 id = tract=${tract} patch=${patch} filter=${filter}
             </cmdline>
-            used = file.butler_template, file.butler_registry_raw, file.ref_cat, file.schema_deepcoadd_meas, file.schema_deepcoadd_mergedet, file.schema_deepcoadd_peak, file.skymap, file.cat_corr_src, file.deepcoadd_calexp, file.deepcoadd_mergedet
-            was_generated_by = file.deepcoadd_meas, file.deepcoadd_measmatch
+            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_meas, file.schema_deepcoadd_mergedet, file.schema_deepcoadd_peak, file.config_measurecoaddsources, file.skymap, file.cat_corr_src, file.deepcoadd_calexp, file.deepcoadd_mergedet
+            was_generated_by = file.deepcoadd_meas, file.deepcoadd_measmatch, file.deepcoadd_measmatchfull, file.measurecoaddsources_md_boost
         </exec_1>
         <wrapper>
             job_repo_dir = ${job_repo_dir}
             mapper = lsst.obs.hsc.HscMapper
             butler_template = ${file.butler_template.fullname}
-            untar_files = ${file.ref_cat.fullname}
+            ref_cats_root = ${ref_cats_path}
         </wrapper>
         wrappername = genwrap_lsst.py
         modnamepat = ${modnamepat_tract_patch_filter}
@@ -710,6 +883,11 @@ verify_files = False
         wrapperloop = tract, patch, filter
         <file>
             ### inputs
+            <config_measurecoaddsources>
+                filename = config-measureMerged-${config_version}.py
+                dirpat = generic_repo
+                job_enddir = config
+            </config_measurecoaddsources>
             <butler_registry_raw>
                 # how to name input file
                 filename = ${fn_butler_registry_raw}
@@ -728,34 +906,25 @@ verify_files = False
                 job_enddir = config
             </butler_template>
             <schema_deepcoadd_meas>
-                filename = schema-deepCoadd_meas-${config_version}.fits
-                rename_file = deepCoadd_meas.fits
+                filename = schema-deepCoadd_meas-${schema_version}.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_deepcoadd_meas>
             <schema_deepcoadd_peak>
-                filename = schema-deepCoadd_peak-${config_version}.fits
-                rename_file = deepCoadd_peak.fits
+                filename = schema-deepCoadd_peak-${schema_version}.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_deepcoadd_peak>
             <schema_deepcoadd_mergedet>
-                filename = schema-deepCoadd_mergeDet-${config_version}.fits
-                rename_file = deepCoadd_mergeDet.fits
+                filename = schema-deepCoadd_mergeDet-${schema_version}.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_deepcoadd_mergedet>
             <skymap>
-                filename = skyMap-${skymap_version}.pickle
-                rename_file = skyMap.pickle
+                filename = skyMap-${skymap_version}-mini.pickle
                 dirpat = generic_repo
                 job_enddir = deepCoadd
             </skymap>
-            <ref_cat>
-                filename = ${fn_refcat_tarball}
-                dirpat = generic_repo
-                job_enddir = ref_cats
-            </ref_cat>
             <cat_corr_src>
                 # how to name input file   ## could change to query
                 depends-newname = make_coadd_temp_exp.list.corr
@@ -802,7 +971,7 @@ verify_files = False
 
                 # where to put it
                 dirpat = hsc_patch_merged
-                ops_enddir = coadd
+                ops_outtype = coadd
                 job_outtype = deepCoadd-results
             </deepcoadd_mergedet>
 
@@ -823,7 +992,7 @@ verify_files = False
 
                 # where to put it
                 dirpat = hsc_tract_patch_filter
-                ops_enddir = coadd
+                ops_outtype = coadd
                 job_outtype = deepCoadd-results
             </deepcoadd_meas>
             <deepcoadd_measmatch>
@@ -842,9 +1011,37 @@ verify_files = False
 
                 # where to put it
                 dirpat = hsc_tract_patch_filter
-                ops_enddir = coadd
+                ops_outtype = coadd
                 job_outtype = deepCoadd-results
             </deepcoadd_measmatch>
+            <deepcoadd_measmatchfull>
+                filetype = deepcoadd_measmatchfull
+
+                filepat = hsc_tract_patch_filter
+                flabel = srcMatchFull
+                fsuffix = fits
+
+                savefiles = true
+                compress_files = false
+
+                dirpat = hsc_tract_patch_filter
+                ops_outtype = coadd
+                job_outtype = deepCoadd-results
+            </deepcoadd_measmatchfull>
+            <measurecoaddsources_md_boost>
+                filetype = measurecoaddsources_md_boost
+
+                filepat = hsc_tract_patch_filter
+                flabel = measurecoaddsources_md
+                fsuffix = boost
+
+                savefiles = false
+                compress_files = false
+
+                dirpat = hsc_tract_patch_filter
+                ops_outtype = boost
+                job_outtype = measureCoaddSources_metadata
+            </measurecoaddsources_md_boost>
         </file>
     </measure_coadd_sources>
     <merge_coadd_measurements>
@@ -855,9 +1052,10 @@ verify_files = False
                 _01 = ${job_repo_dir}
                 output = ${job_repo_dir}
                 doraise = _flag
+                no-versions = _flag
                 id = tract=${tract} patch=${patch} filter=
             </cmdline>
-            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_meas, list.meas.deepcoadd_meas
+            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_meas,file.config_mergecoaddmeasurements, list.meas.deepcoadd_meas
             was_generated_by = file.deepcoadd_ref
         </exec_1>
         <wrapper>
@@ -872,6 +1070,11 @@ verify_files = False
         wrapperloop = tract, patch
         <file>
             ### inputs
+            <config_mergecoaddmeasurements>
+                filename = config-mergeMeasure-${config_version}.py
+                dirpat = generic_repo
+                job_enddir = config
+            </config_mergecoaddmeasurements>
             <butler_registry_raw>
                 # how to name input file
                 filename = ${fn_butler_registry_raw}
@@ -890,14 +1093,13 @@ verify_files = False
                 job_enddir = config
             </butler_template>
             <schema_deepcoadd_meas>
-                filename = schema-deepCoadd_meas-${config_version}.fits
-                rename_file = deepCoadd_meas.fits
+                filename = schema-deepCoadd_meas-${schema_version}.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_deepcoadd_meas>
             <deepcoadd_meas>
                 listonly = true
-                
+
                 # where to put it
                 dirpat = hsc_tract_patch_filter
                 job_outtype = deepCoadd-results
@@ -919,7 +1121,7 @@ verify_files = False
 
                 # where to put it
                 dirpat = hsc_patch_merged
-                ops_enddir = coadd
+                ops_outtype = coadd
                 job_outtype = deepCoadd-results
             </deepcoadd_ref>
         </file>
@@ -951,10 +1153,11 @@ verify_files = False
                 _01 = ${job_repo_dir}
                 output = ${job_repo_dir}
                 doraise = _flag
+                no-versions = _flag
                 id = tract=${tract} patch=${patch} filter=${filter}
             </cmdline>
-            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_ref, file.schema_deepcoadd_forced_src, file.skymap, file.deepcoadd_calexp, file.deepcoadd_meas, file.deepcoadd_ref
-            was_generated_by = file.deepcoadd_forced_src
+            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_ref, file.schema_deepcoadd_forced_src, file.config_forcedphotcoadd, file.skymap, file.deepcoadd_calexp, file.deepcoadd_meas, file.deepcoadd_ref
+            was_generated_by = file.deepcoadd_forced_src, file.forcedphotcoadd_md_boost
         </exec_1>
         <wrapper>
             job_repo_dir = ${job_repo_dir}
@@ -967,6 +1170,11 @@ verify_files = False
         wrapperloop = tract, patch, filter
         <file>
             ### inputs
+            <config_forcedphotcoadd>
+                filename = config-forcedPhotCoadd-${config_version}.py
+                dirpat = generic_repo
+                job_enddir = config
+            </config_forcedphotcoadd>
             <butler_registry_raw>
                 # how to name input file
                 filename = ${fn_butler_registry_raw}
@@ -985,20 +1193,17 @@ verify_files = False
                 job_enddir = config
             </butler_template>
             <schema_deepcoadd_ref>
-                filename = schema-deepCoadd_ref-${config_version}.fits
-                rename_file = deepCoadd_ref.fits
+                filename = schema-deepCoadd_ref-${schema_version}.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_deepcoadd_ref>
             <schema_deepcoadd_forced_src>
-                filename = schema-deepCoadd_forced_src-${config_version}.fits
-                rename_file = deepCoadd_forced_src.fits
+                filename = schema-deepCoadd_forced_src-${schema_version}.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_deepcoadd_forced_src>
             <skymap>
-                filename = skyMap-${skymap_version}.pickle
-                rename_file = skyMap.pickle
+                filename = skyMap-${skymap_version}-mini.pickle
                 dirpat = generic_repo
                 job_enddir = deepCoadd
             </skymap>
@@ -1044,12 +1249,27 @@ verify_files = False
 
                 # where to put it
                 dirpat = hsc_tract_patch_filter
-                ops_enddir = coadd
+                ops_outtype = coadd
                 job_outtype = deepCoadd-results
             </deepcoadd_forced_src>
+            <forcedphotcoadd_md_boost>
+                filetype = forcedphotcoadd_md_boost
+
+                filepat = hsc_tract_patch_filter
+                flabel = forcedphotcoadd_md
+                fsuffix = boost
+
+                savefiles = false
+                compress_files = false
+
+                dirpat = hsc_tract_patch_filter
+                ops_outtype = boost
+                job_outtype = deepCoadd_forced_metadata
+            </forcedphotcoadd_md_boost>
         </file>
     </forced_phot_coadd>
     <forced_phot_ccd>
+    # NOTE: forced_phot_ccd does not work yet and is not included in mini test
         <exec_1>
             execname = forcedPhotCcd.py
             cmd_hyphen = mixed_gnu  # use single hyphen for single char options and double hyphen for multiple char options
@@ -1057,6 +1277,8 @@ verify_files = False
                 _01 = ${job_repo_dir}
                 output = ${job_repo_dir}
                 doraise = _flag
+                no-versions = _flag
+                C = ${file.config_forcedphotccd.fullname}
                 id = --id visit=${visit} ccd=${ccd} tract=${tract}
             </cmdline>
             used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_ref, file.schema_forced_src, file.skymap, file.config_forcedphotccd, file.deepcoadd_ref, file.img_corr
@@ -1070,7 +1292,7 @@ verify_files = False
         wrappername = genwrap_lsst.py
         modnamepat = ${modnamepat_tract_visit_ccd_filter}
         loopobj = file.img_corr
-        #wrapperloop = 
+        #wrapperloop =
         <file>
             ### inputs
             <butler_registry_raw>
@@ -1091,28 +1313,27 @@ verify_files = False
                 job_enddir = config
             </butler_template>
             <schema_deepcoadd_ref>
-                filename = schema-deepCoadd_ref-${config_version}.fits
-                rename_file = deepCoadd_ref.fits
+                filename = schema-deepCoadd_ref-${schema_version}.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_deepcoadd_ref>
             <schema_deepcoadd_forced_src>
-                filename = schema-forced_src-${config_version}.fits
+                filename = schema-forced_src-${schema_version}.fits
                 rename_file = forced_src.fits
                 dirpat = generic_repo
                 job_enddir = schema
             </schema_deepcoadd_forced_src>
             <skymap>
-                filename = skyMap-${skymap_version}.pickle
-                rename_file = skyMap.pickle
+                filename = skyMap-${skymap_version}-mini.pickle
                 dirpat = generic_repo
                 job_enddir = deepCoadd
             </skymap>
-            <config_forcedphotccd>
-                filename = forcedPhotCcdConfig-${config_version}.py 
-                dirpat = generic_norepo
-                job_enddir = config
-            </config_forcedphotccd>
+            #TODO: this will be replaced by a full config, not just config overrides.
+            #<config_forcedphotccd>
+            #    filename = forcedPhotCcdConfig-${config_version}.py
+            #    dirpat = generic_norepo
+            #    job_enddir = config
+            #</config_forcedphotccd>
             <img_corr>
                 depends = make_coadd_temp_exp.list.corr
 
@@ -1147,12 +1368,312 @@ verify_files = False
                 # where to put it
                 # %(pointing)05d/%(filter)s/tract%(tract)d/
                 dirpat = hsc_tract_patch_filter
-                ops_enddir = coadd
+                ops_outtype = boost
                 job_endir = tract${tract}
             </forced_src>
         </file>
     </forced_phot_ccd>
 </module>
+
+<filetype_metadata>
+    <sfm_srcmatch>
+        <hdus>
+            <primary>
+                <r>
+                    <f>
+                        ccd = ccd
+                        visit = visit
+                    </f>
+                    <w>
+                        filter = filter
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+                <o>
+                    <w>
+                        camsym = camsym
+                    </w>
+                </o>
+            </primary>
+        </hdus>
+        metadata_table = catalog
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </sfm_srcmatch>
+    <sfm_srcmatchfull>
+        <hdus>
+            <primary>
+                <r>
+                    <f>
+                        ccd = ccd
+                        visit = visit
+                    </f>
+                    <w>
+                        filter = filter
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+                <o>
+                    <w>
+                        camsym = camsym
+                    </w>
+                </o>
+            </primary>
+        </hdus>
+        metadata_table = catalog
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </sfm_srcmatchfull>
+    <sfm_calexpbkgd>
+        <hdus>
+            <primary>
+                <r>
+                    <f>
+                        ccd = ccd
+                        visit = visit
+                    </f>
+                    <w>
+                        filter = filter
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+                <o>
+                    <w>
+                        camsym = camsym
+                    </w>
+                </o>
+            </primary>
+        </hdus>
+        metadata_table = desfile
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </sfm_calexpbkgd>
+    <sfm_oss_thumb>
+        <hdus>
+            <primary>
+                <r>
+                    <f>
+                        ccd = ccd
+                        visit = visit
+                    </f>
+                    <w>
+                        filter = filter
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+                <o>
+                    <w>
+                        camsym = camsym
+                    </w>
+                </o>
+            </primary>
+        </hdus>
+        metadata_table = image
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </sfm_oss_thumb>
+    <sfm_flattened_thumb>
+        <hdus>
+            <primary>
+                <r>
+                    <f>
+                        ccd = ccd
+                        visit = visit
+                    </f>
+                    <w>
+                        filter = filter
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+                <o>
+                    <w>
+                        camsym = camsym
+                    </w>
+                </o>
+            </primary>
+        </hdus>
+        metadata_table = image
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </sfm_flattened_thumb>
+    <processccd_md_boost>
+        <hdus>
+            <primary>
+                <r>
+                    <f>
+                        ccd = ccd
+                        visit = visit
+                    </f>
+                    <w>
+                        filter = filter
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+                <o>
+                    <w>
+                        camsym = camsym
+                    </w>
+                </o>
+            </primary>
+        </hdus>
+        metadata_table = desfile
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </processccd_md_boost>
+    <sfm_icsrc>
+        <hdus>
+            <primary>
+                <r>
+                    <f>
+                        ccd = ccd
+                        visit = visit
+                    </f>
+                    <w>
+                        filter = filter
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+                <o>
+                    <w>
+                        camsym = camsym
+                    </w>
+                </o>
+            </primary>
+        </hdus>
+        metadata_table = catalog
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </sfm_icsrc>
+    <makecoaddtempexp_md_boost>
+        <hdus>
+            <primary>
+                <r>
+                    <w>
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+                <o>
+                    <w>
+                        camsym = camsym
+                    </w>
+                </o>
+            </primary>
+        </hdus>
+        metadata_table = desfile
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </makecoaddtempexp_md_boost>
+    <assemblecoadd_md_boost>
+        <hdus>
+            <primary>
+                <r>
+                    <w>
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+                <o>
+                    <w>
+                        camsym = camsym
+                    </w>
+                </o>
+            </primary>
+        </hdus>
+        metadata_table = desfile
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </assemblecoadd_md_boost>
+    <deepcoadd_measmatchfull>
+        <hdus>
+            <primary>
+                <r>
+                    <w>
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+                <o>
+                    <w>
+                        camsym = camsym
+                    </w>
+                </o>
+            </primary>
+        </hdus>
+        metadata_table = desfile
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </deepcoadd_measmatchfull>
+    <detectcoaddsources_md_boost>
+        <hdus>
+            <primary>
+                <r>
+                    <w>
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+                <o>
+                    <w>
+                        camsym = camsym
+                    </w>
+                </o>
+            </primary>
+        </hdus>
+        metadata_table = desfile
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </detectcoaddsources_md_boost>
+    <measurecoaddsources_md_boost>
+        <hdus>
+            <primary>
+                <r>
+                    <w>
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+                <o>
+                    <w>
+                        camsym = camsym
+                    </w>
+                </o>
+            </primary>
+        </hdus>
+        metadata_table = desfile
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </measurecoaddsources_md_boost>
+    <forcedphotcoadd_md_boost>
+        <hdus>
+            <primary>
+                <r>
+                    <w>
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+                <o>
+                    <w>
+                        camsym = camsym
+                    </w>
+                </o>
+            </primary>
+        </hdus>
+        metadata_table = desfile
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </forcedphotcoadd_md_boost>
+
+</filetype_metadata>
+
 
 <filename_pattern>
     generic = ${flabel}_${unitname}-r${reqnum}p${attnum:2}.${fsuffix}
@@ -1168,30 +1689,27 @@ verify_files = False
 </filename_pattern>
 <directory_pattern>
     <lsst_calib>
-        #ops = 
+        #ops =
         runtime = ${job_repo_dir}/CALIB/${calibtype}/${calib_date}/NONE
     </lsst_calib>
     <lsst_calib_filter>
-        #ops = 
-        runtime = ${job_repo_dir}/CALIB/${calibtype}/${calib_date}/${filter} 
+        #ops =
+        runtime = ${job_repo_dir}/CALIB/${calibtype}/${calib_date}/${filter}
     </lsst_calib_filter>
     <hsc_raw>
         #ops = MTN/HSC/${dateobs}/${visit}
         runtime = ${job_repo_dir}/${field}/${dateobs}/${pointing:5}/${filter}
     </hsc_raw>
-    <lsst_bf>
-        runtime = ${job_repo_dir}/CALIB/BFKERNEL
-    </lsst_bf>
     <hsc_ccd>
-        ops = ${ops_run_dir}/${ops_enddir}
+        ops = ${ops_run_dir}/sfm/${filter}/${pointing:5}/${ops_enddir}
         runtime = ${job_repo_dir}/${pointing:5}/${filter}/${job_enddir}
     </hsc_ccd>
     <hsc_tract_patch_filter>
-        ops = ${ops_run_dir}/${ops_enddir}
+        ops = ${ops_run_dir}/${ops_outtype}/${filter}/${tract}/${patch}
         runtime = ${job_repo_dir}/${job_outtype}/${filter}/${tract}/${patch}
     </hsc_tract_patch_filter>
     <hsc_patch_merged>
-        ops = ${ops_run_dir}/${ops_enddir}
+        ops = ${ops_run_dir}/${ops_outtype}/merged/${tract}/${patch}
         runtime = ${job_repo_dir}/${job_outtype}/merged/${tract}/${patch}
     </hsc_patch_merged>
     <generic_repo>
