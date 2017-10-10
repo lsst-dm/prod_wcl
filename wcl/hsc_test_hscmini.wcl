@@ -312,6 +312,7 @@ verify_files = False
         wrapperloop = imgname,visit,filter,ccd,pointing   # filter included here so can match dflatcor on it (pointing for output paths)
         loopobj = file.raw   # what file to use to determine wrapper loop values
         modnamepat = ${modnamepat_tract_visit_ccd_filter}
+        end_mod_dir = ${modulename}/${filter}/${visit}
     </processccd>
     <make_coadd_temp_exp>
         <exec_1>  # label telling wrapper that this is the 1st exec to run
@@ -443,6 +444,7 @@ verify_files = False
         wrapperloop = tract,patch,visit,filter   # define_quanta (how many times to we run this)
         loopobj = list.corr   # what data is used along with wrapperloop
         modnamepat = ${modnamepat_tract_patch_visit_filter}  # how to name internal files like wrapper wcl and log files
+        end_mod_dir = ${modulename}/${patch}/${filter}
     </make_coadd_temp_exp>
     <assemble_coadd>
         <exec_1>
@@ -582,6 +584,7 @@ verify_files = False
                 rundir = list/${modulename}
             </tempexp>
         </list>
+        end_mod_dir = ${modulename}/${patch}/${filter}
     </assemble_coadd>
     <detect_coadd_sources>
         <exec_1>
@@ -719,6 +722,7 @@ verify_files = False
                 job_outtype = detectCoaddSources_metadata
             </detectcoaddsources_md_boost>
         </file>
+        end_mod_dir = ${modulename}/${patch}/${filter}
     </detect_coadd_sources>
     <merge_coadd_detections>
         <exec_1>
@@ -835,6 +839,7 @@ verify_files = False
                 rundir = list/${modulename}
             </det>
         </list>
+        end_mod_dir = ${modulename}/${patch}/
     </merge_coadd_detections>
     <measure_coadd_sources>
         <exec_1>
@@ -1022,6 +1027,7 @@ verify_files = False
                 job_outtype = measureCoaddSources_metadata
             </measurecoaddsources_md_boost>
         </file>
+        end_mod_dir = ${modulename}/${patch}/${filter}
     </measure_coadd_sources>
     <merge_coadd_measurements>
         <exec_1>
@@ -1123,6 +1129,7 @@ verify_files = False
                 rundir = list/${modulename}
             </meas>
         </list>
+        end_mod_dir = ${modulename}/${patch}/
     </merge_coadd_measurements>
     <forced_phot_coadd>
         <exec_1>
@@ -1246,6 +1253,7 @@ verify_files = False
                 job_outtype = deepCoadd_forced_metadata
             </forcedphotcoadd_md_boost>
         </file>
+        end_mod_dir = ${modulename}/${patch}/${filter}
     </forced_phot_coadd>
     <forced_phot_ccd>
     # NOTE: forced_phot_ccd does not work yet and is not included in mini test
@@ -1351,6 +1359,7 @@ verify_files = False
                 job_endir = tract${tract}
             </forced_src>
         </file>
+        end_mod_dir = ${modulename}/${filter}/${visit}
     </forced_phot_ccd>
 </module>
 
@@ -1699,6 +1708,28 @@ verify_files = False
         ops = ${ops_run_dir}/${ops_enddir}
         runtime = ${job_enddir}
     </generic_norepo>
+    #####  trying new internal file directory patterns due to too many files in 1 dir
+    <inputwcl>
+        name = wcl
+        ops = ${ops_run_dir}/inputwcl/${end_mod_dir}
+        runtime = inputwcl/${end_mod_dir}
+    </inputwcl>
+    <outputwcl>
+        name = wcl
+        ops = ${ops_run_dir}/outputwcl/${end_mod_dir}
+        runtime = outputwcl/${end_mod_dir}
+    </outputwcl>
+    <list>
+        name = list
+        ops = ${ops_run_dir}/list/${end_mod_dir}
+        runtime = list/${end_mod_dir}
+    </list>
+    <log>
+        name = log
+        ops = ${ops_run_dir}/log/${end_mod_dir}
+        runtime = log/${end_mod_dir}
+    </log>
+    # need to keep an eye on junkdir to see if overload with files (i.e., what is max # of condor jobs?)
 </directory_pattern>
 
 modnamepat_tract_generic = ${unitname}-r${reqnum}p${attnum:2}_${modulename}
