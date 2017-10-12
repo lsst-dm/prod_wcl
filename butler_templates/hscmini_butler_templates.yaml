@@ -77,7 +77,7 @@ datasets:
     deepCoadd_meas_schema: "schema/schema-deepCoadd_meas-$opt{schema_version}.fits"
     deepCoadd_ref_schema: "schema/schema-deepCoadd_ref-$opt{schema_version}.fits"
     deepCoadd_forced_src_schema: "schema/schema-deepCoadd_forced_src-$opt{schema_version}.fits"
-    deepCoadd_skyMap: "deepCoadd/skyMap-$opt{skymap_version}-mini.pickle"
+    deepCoadd_skyMap: "deepCoadd/skyMap-$opt{skymap_version}.pickle"
     processCcd_config: "config/config-processCcd-$opt{config_version}.py"
     deep_makeCoaddTempExp_config: "config/config-deep_makeCoaddTempExp-$opt{config_version}.py"
     deep_safeClipAssembleCoadd_config: "config/config-deep_safeClipAssembleCoadd-$opt{config_version}.py"
