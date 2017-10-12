@@ -11,16 +11,16 @@ use_qcf = True
 verify_files = False
 
 <module>
-    <query_processccd>
+    <query_processccd_nofringe>
         noop = True
         <list>
             <allfiles>
                 exec = processccd_query.py
-                args = --section ${submit_des_db_section} --qoutfile ${qoutfile} --tract ${tract} --overlap_version ${overlap_version} --calib_version ${calib_version}
+                args = --section ${submit_des_db_section} --qoutfile ${qoutfile} --tract ${tract} --overlap_version ${overlap_version} --calib_version ${calib_version} --filter ${filter_nofringe} --visittag ${visit_tag}
             </allfiles>
         </list>
-    </query_processccd>
-    <processccd>
+    </query_processccd_nofringe>
+    <processccd_nofringe>
         <exec_1>
             execname = processCcd.py
             cmd_hyphen = mixed_gnu  # use single hyphen for single char options and double hyphen for multiple char options
@@ -41,19 +41,19 @@ verify_files = False
         </exec_1>
         <file>
             <biascor>
-                depends query_processccd.list.allfiles.cal_biascor_hsc
+                depends query_processccd_nofringe.list.allfiles.cal_biascor_hsc
                 match = imgname
                 dirpat = lsst_calib
                 calibtype = BIAS
             </biascor>
             <dflatcor>
-                depends query_processccd.list.allfiles.cal_dflatcor_hsc
+                depends query_processccd_nofringe.list.allfiles.cal_dflatcor_hsc
                 match = imgname
                 dirpat = lsst_calib_filter
                 calibtype = FLAT
             </dflatcor>
             <darkcor>
-                depends query_processccd.list.allfiles.cal_darkcor_hsc
+                depends query_processccd_nofringe.list.allfiles.cal_darkcor_hsc
                 match = imgname
                 dirpat = lsst_calib
                 calibtype = DARK
@@ -64,7 +64,7 @@ verify_files = False
                 job_enddir = CALIB/BFKERNEL
             </bf>
             <raw>
-                depends query_processccd.list.allfiles.raw
+                depends query_processccd_nofringe.list.allfiles.raw
                 match = imgname, visit, filter, ccd, pointing
 
                 # how to put files in job scratch directory
@@ -268,7 +268,7 @@ verify_files = False
         loopobj = file.raw   # what file to use to determine wrapper loop values
         modnamepat = ${modnamepat_tract_visit_ccd_filter}
         end_mod_dir = ${modulename}/${filter}/${visit}
-    </processccd>
+    </processccd_nofringe>
     <make_coadd_temp_exp>
         <exec_1>  # label telling wrapper that this is the 1st exec to run
             # example command line:   makeCoaddTempExp.py jobrepo --output jobrepo --id tract=0 patch=8x7 filter=HSC-I --doraise -c doApplyUberCal=False --selectId visit=904010 ccd=10 --selectId visit=904010 ccd=4

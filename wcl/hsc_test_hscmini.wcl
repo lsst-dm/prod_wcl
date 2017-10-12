@@ -13,6 +13,9 @@ pipeline = hscmini
 pipeprod = BPSstack
 pipever = w_2017_33_v1
 
+filter_fringe = HSC-Y,NB0921
+filter_nofringe = HSC-G,HSC-I,HSC-R,HSC-Z
+visit_tag = ci_hsc
 
 dataset = ci_hsc               # used in names of butler registry files
 overlap_version = minihsc-v2
@@ -31,8 +34,8 @@ fn_butler_registry_calib = ${dataset}_calibRegistry-${butlerregistry_version}.sq
 # different blocks can have different job parallelism
 <block>
     <processccd>
-        modulelist = query_processccd, processccd
-        divide_jobs_by = ccd, filter
+        modulelist = query_processccd_nofringe, processccd_nofringe
+        divide_jobs_by = ccd
     </processccd>
     <drp-patch>
         modulelist = make_coadd_temp_exp, assemble_coadd, detect_coadd_sources, merge_coadd_detections, measure_coadd_sources, merge_coadd_measurements, forced_phot_coadd
