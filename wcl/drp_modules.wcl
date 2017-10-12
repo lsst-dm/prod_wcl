@@ -269,6 +269,270 @@ verify_files = False
         modnamepat = ${modnamepat_tract_visit_ccd_filter}
         end_mod_dir = ${modulename}/${filter}/${visit}
     </processccd_nofringe>
+    <query_processccd_fringe>
+        noop = True
+        <list>
+            <allfiles>
+                exec = processccd_query.py
+                args = --section ${submit_des_db_section} --qoutfile ${qoutfile} --tract ${tract} --overlap_version ${overlap_version} --calib_version ${calib_version} --filter ${filter_fringe} --visittag ${visit_tag}
+            </allfiles>
+        </list>
+    </query_processccd_fringe>
+    <processccd_fringe>
+        <exec_1>
+            execname = processCcd.py
+            cmd_hyphen = mixed_gnu  # use single hyphen for single char options and double hyphen for multiple char options
+
+            # open provenance model
+            used = file.butler_template,file.butler_registry_raw,file.butler_registry_calib,file.schema_src,file.schema_icsrc,file.config_processccd,file.bf,file.raw,file.biascor,file.dflatcor,file.darkcor,file.fringecor
+            was_generated_by = file.cat_corr_src, file.img_corr, file.sfm_srcmatch, file.sfm_srcmatchfull, file.sfm_calexpbkgd, file.sfm_oss_thumb, file.sfm_flattened_thumb, file.processccd_md_boost, file.sfm_icsrc
+            # ancestry =
+
+            <cmdline>
+                _01 = ${job_repo_dir}
+                #calib = ${job_repo_dir}
+                output = ${job_repo_dir}
+                doraise = _flag
+                no-versions = _flag
+                id = visit=${visit} ccd=${ccd}
+            </cmdline>
+        </exec_1>
+        <file>
+            <biascor>
+                depends query_processccd_fringe.list.allfiles.cal_biascor_hsc
+                match = imgname
+                dirpat = lsst_calib
+                calibtype = BIAS
+            </biascor>
+            <dflatcor>
+                depends query_processccd_fringe.list.allfiles.cal_dflatcor_hsc
+                match = imgname
+                dirpat = lsst_calib_filter
+                calibtype = FLAT
+            </dflatcor>
+            <darkcor>
+                depends query_processccd_fringe.list.allfiles.cal_darkcor_hsc
+                match = imgname
+                dirpat = lsst_calib
+                calibtype = DARK
+            </darkcor>
+            <fringecor>
+                depends query_processccd_fringe.list.allfiles.cal_fringecor_hsc
+                match = imgname
+                dirpat = lsst_calib_filter
+                calibtype = FRINGE
+            </fringecor>
+            <bf>
+                filename = brighter_fatter_kernel-${calib_version}.pkl
+                dirpat = generic_repo
+                job_enddir = CALIB/BFKERNEL
+            </bf>
+            <raw>
+                depends query_processccd_fringe.list.allfiles.raw
+                match = imgname, visit, filter, ccd, pointing
+
+                # how to put files in job scratch directory
+                dirpat = hsc_raw
+                rename_file = HSC-${visit:7}-${ccd:3}.fits     # Butler requires file to have a different name
+            </raw>
+            <schema_src>
+                filename = schema-src-${schema_version}.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_src>
+            <schema_icsrc>
+                filename = schema-icSrc-${schema_version}.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_icsrc>
+            <config_processccd>
+                filename = config-processCcd-${config_version}.py
+                dirpat = generic_repo
+                job_enddir = config
+            </config_processccd>
+            <butler_registry_raw>
+                # how to name input file
+                filename = ${fn_butler_registry_raw}
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                rename_file = registry.sqlite3
+                dirpat = generic_norepo
+                job_enddir = ${job_repo_dir}
+            </butler_registry_raw>
+            <butler_registry_calib>
+                # how to name input file
+                filename = ${fn_butler_registry_calib}
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                rename_file = calibRegistry.sqlite3
+                dirpat = generic_norepo
+                job_enddir = ${job_repo_dir}
+            </butler_registry_calib>
+            <butler_template>
+                # how to name input file
+                filename = ${fn_butler_template}
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                dirpat = generic_norepo
+                job_enddir = config
+            </butler_template>
+            <cat_corr_src>
+                #"peg/00671/HSC-I/output/SRC-0903986-016.fits" link="output"/>
+                # what metadata to save
+                filetype = cat_corr_src
+
+                # how to name output file
+                filepat = hsc_visit_ccd
+                flabel = SRC
+                fsuffix = fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                dirpat = hsc_ccd
+                ops_enddir = src
+                job_enddir = output
+            </cat_corr_src>
+            <img_corr>
+                # what metadata to save
+                filetype = img_corr
+
+                # how to name output file
+                filepat = hsc_visit_ccd
+                flabel = CORR
+                fsuffix = fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it (jobroot=job_enddir, archive=ops_enddir)
+                dirpat = hsc_ccd
+                ops_enddir = calexp
+                job_enddir = corr
+            </img_corr>
+            <sfm_srcmatch>
+                #"repo/00671/HSC-I/output/SRCMATCH-0903986-016.fits"
+                filetype = sfm_srcmatch
+
+                # how to name output file
+                filepat = hsc_visit_ccd
+                flabel = SRCMATCH
+                fsuffix = fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it (jobroot=job_enddir, archive=ops_enddir)
+                dirpat = hsc_ccd
+                ops_enddir = srcMatch
+                job_enddir = output
+            </sfm_srcmatch>
+            <sfm_srcmatchfull>
+                #"repo/00671/HSC-I/output/SRCMATCHFULL-0903986-016.fits"
+                filetype = sfm_srcmatchfull
+
+                # how to name output file
+                filepat = hsc_visit_ccd
+                flabel = SRCMATCHFULL
+                fsuffix = fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it (jobroot=job_enddir, archive=ops_enddir)
+                dirpat = hsc_ccd
+                ops_enddir = srcMatchFull
+                job_enddir = output
+            </sfm_srcmatchfull>
+            <sfm_calexpbkgd>
+                filetype = sfm_calexpbkgd
+
+                filepat = hsc_visit_ccd
+                flabel = BKGD
+                fsuffix = fits
+
+                savefiles = true
+                compress_files = false
+
+                dirpat = hsc_ccd
+                ops_enddir = calexpBkgd
+                job_enddir = corr
+            </sfm_calexpbkgd>
+            <sfm_oss_thumb>
+                filetype = sfm_oss_thumb
+
+                filepat = hsc_visit_ccd
+                flabel = oss
+                fsuffix = png
+
+                savefiles = true
+                compress_files = false
+
+                dirpat = hsc_ccd
+                ops_enddir = ossThumb
+                job_enddir = thumbs
+            </sfm_oss_thumb>
+            <sfm_flattened_thumb>
+                filetype = sfm_flattened_thumb
+
+                filepat = hsc_visit_ccd
+                flabel = flattened
+                fsuffix = png
+
+                savefiles = true
+                compress_files = false
+
+                dirpat = hsc_ccd
+                ops_enddir = flattenedThumb
+                job_enddir = thumbs
+            </sfm_flattened_thumb>
+            <processccd_md_boost>
+                filetype = processccd_md_boost
+
+                filepat = hsc_visit_ccd
+                flabel = processccd_md
+                fsuffix = boost
+
+                savefiles = true
+                compress_files = false
+
+                dirpat = hsc_ccd
+                ops_enddir = boost
+                job_enddir = processCcd_metadata
+            </processccd_md_boost>
+            <sfm_icsrc>
+                filetype = sfm_icsrc
+
+                filepat = hsc_visit_ccd
+                flabel = ICSRC
+                fsuffix = fits
+
+                savefiles = false
+                compress_files = false
+
+                # where to put it (jobroot=job_enddir, archive=ops_enddir)
+                dirpat = hsc_ccd
+                ops_enddir = icSrc
+                job_enddir = output
+            </sfm_icsrc>
+        </file>
+        <wrapper>
+            job_repo_dir = ${job_repo_dir}
+            mapper = lsst.obs.hsc.HscMapper                     # what mapper to use
+            butler_template = ${file.butler_template.fullname}  # what file entry is the butler template (so we're not hardcoding section name)
+            ref_cats_root = ${ref_cats_path}
+        </wrapper>
+        wrappername = genwrap_lsst.py
+        wrapperloop = imgname,visit,filter,ccd,pointing   # filter included here so can match dflatcor on it (pointing for output paths)
+        loopobj = file.raw   # what file to use to determine wrapper loop values
+        modnamepat = ${modnamepat_tract_visit_ccd_filter}
+        end_mod_dir = ${modulename}/${filter}/${visit}
+    </processccd_fringe>
     <make_coadd_temp_exp>
         <exec_1>  # label telling wrapper that this is the 1st exec to run
             # example command line:   makeCoaddTempExp.py jobrepo --output jobrepo --id tract=0 patch=8x7 filter=HSC-I --doraise -c doApplyUberCal=False --selectId visit=904010 ccd=10 --selectId visit=904010 ccd=4
