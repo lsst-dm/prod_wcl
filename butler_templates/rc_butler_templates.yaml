@@ -15,10 +15,10 @@ exposures:
     ossImage: "%(pointing)05d/%(filter)s/thumbs/oss-%(visit)07d-%(ccd)03d-r${reqnum}p${attnum:2}.fits"
     flattenedImage: "%(pointing)05d/%(filter)s/thumbs/flattened-%(visit)07d-%(ccd)03d-r${reqnum}p${attnum:2}.fits"
 calibrations:
-    bias: "BIAS/%(calibDate)s/NONE/BIAS-%(calibDate)s-%(ccd)03d.fits"
-    dark: "DARK/%(calibDate)s/NONE/DARK-%(calibDate)s-%(ccd)03d.fits"
-    flat: "FLAT/%(calibDate)s/%(filter)s/FLAT-%(calibDate)s-%(filter)s-%(ccd)03d.fits"
-    fringe: "FRINGE/%(calibDate)s/%(filter)s/FRINGE-%(calibDate)s-%(filter)s-%(ccd)03d.fits"
+    bias: "BIAS/%(calibDate)s/NONE/BIAS-$opt{calib_version}-%(calibDate)s-%(ccd)03d.fits"
+    dark: "DARK/%(calibDate)s/NONE/DARK-$opt{calib_version}-%(calibDate)s-%(ccd)03d.fits"
+    flat: "FLAT/%(calibDate)s/%(filter)s/FLAT-$opt{calib_version}-%(calibDate)s-%(filter)s-%(ccd)03d.fits"
+    fringe: "FRINGE/%(calibDate)s/%(filter)s/FRINGE-$opt{calib_version}-%(calibDate)s-%(filter)s-%(ccd)03d.fits"
     bfKernel: "BFKERNEL/brighter_fatter_kernel-$opt{calib_version}.pkl"
 datasets:
     icExpBackground: "%(pointing)05d/%(filter)s/corr/ICEXPBKGD-%(visit)07d-%(ccd)03d-r${reqnum}p${attnum:2}.fits"
