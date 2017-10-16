@@ -102,7 +102,7 @@ verify_files = False
                 # where to put it (jobroot=rundir, archive=ops_enddir)
                 rename_file = calibRegistry.sqlite3
                 dirpat = generic_norepo
-                job_enddir = ${job_repo_dir}
+                job_enddir = ${job_repo_dir}/CALIB
             </butler_registry_calib>
             <butler_template>
                 # how to name input file
@@ -366,7 +366,7 @@ verify_files = False
                 # where to put it (jobroot=rundir, archive=ops_enddir)
                 rename_file = calibRegistry.sqlite3
                 dirpat = generic_norepo
-                job_enddir = ${job_repo_dir}
+                job_enddir = ${job_repo_dir}/CALIB
             </butler_registry_calib>
             <butler_template>
                 # how to name input file
