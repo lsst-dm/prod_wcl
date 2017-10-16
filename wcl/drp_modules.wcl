@@ -16,7 +16,7 @@ verify_files = False
         <list>
             <allfiles>
                 exec = processccd_query.py
-                args = --section ${submit_des_db_section} --qoutfile ${qoutfile} --tract ${tract} --overlap_version ${overlap_version} --calib_version ${calib_version} --filter ${filter_nofringe} --visittag ${visit_tag}
+                args = --section ${submit_des_db_section} --qoutfile ${qoutfile} --tract ${tract} --overlap_version ${overlap_version} --calib_version ${calib_version} --filter ${filter_nofringe} $opt{visit_tag}
             </allfiles>
         </list>
     </query_processccd_nofringe>
@@ -274,7 +274,7 @@ verify_files = False
         <list>
             <allfiles>
                 exec = processccd_query.py
-                args = --section ${submit_des_db_section} --qoutfile ${qoutfile} --tract ${tract} --overlap_version ${overlap_version} --calib_version ${calib_version} --filter ${filter_fringe} --visittag ${visit_tag}
+                args = --section ${submit_des_db_section} --qoutfile ${qoutfile} --tract ${tract} --overlap_version ${overlap_version} --calib_version ${calib_version} --filter ${filter_fringe} $opt{visit_tag}
             </allfiles>
         </list>
     </query_processccd_fringe>
