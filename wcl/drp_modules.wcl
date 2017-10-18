@@ -118,7 +118,7 @@ verify_files = False
                 filetype = cat_corr_src
 
                 # how to name output file
-                filepat = hsc_visit_ccd
+                filepat = hsc_unit_ccd
                 flabel = SRC
                 fsuffix = fits
 
@@ -136,7 +136,7 @@ verify_files = False
                 filetype = img_corr
 
                 # how to name output file
-                filepat = hsc_visit_ccd
+                filepat = hsc_unit_ccd
                 flabel = CORR
                 fsuffix = fits
 
@@ -154,7 +154,7 @@ verify_files = False
                 filetype = sfm_srcmatch
 
                 # how to name output file
-                filepat = hsc_visit_ccd
+                filepat = hsc_unit_ccd
                 flabel = SRCMATCH
                 fsuffix = fits
 
@@ -172,7 +172,7 @@ verify_files = False
                 filetype = sfm_srcmatchfull
 
                 # how to name output file
-                filepat = hsc_visit_ccd
+                filepat = hsc_unit_ccd
                 flabel = SRCMATCHFULL
                 fsuffix = fits
 
@@ -188,7 +188,7 @@ verify_files = False
             <sfm_calexpbkgd>
                 filetype = sfm_calexpbkgd
 
-                filepat = hsc_visit_ccd
+                filepat = hsc_unit_ccd
                 flabel = BKGD
                 fsuffix = fits
 
@@ -202,7 +202,7 @@ verify_files = False
             <sfm_oss_thumb>
                 filetype = sfm_oss_thumb
 
-                filepat = hsc_visit_ccd
+                filepat = hsc_unit_ccd
                 flabel = oss
                 fsuffix = png
 
@@ -216,7 +216,7 @@ verify_files = False
             <sfm_flattened_thumb>
                 filetype = sfm_flattened_thumb
 
-                filepat = hsc_visit_ccd
+                filepat = hsc_unit_ccd
                 flabel = flattened
                 fsuffix = png
 
@@ -230,7 +230,7 @@ verify_files = False
             <processccd_md_boost>
                 filetype = processccd_md_boost
 
-                filepat = hsc_visit_ccd
+                filepat = hsc_unit_ccd
                 flabel = processccd_md
                 fsuffix = boost
 
@@ -244,7 +244,7 @@ verify_files = False
             <sfm_icsrc>
                 filetype = sfm_icsrc
 
-                filepat = hsc_visit_ccd
+                filepat = hsc_unit_ccd
                 flabel = ICSRC
                 fsuffix = fits
 
@@ -382,7 +382,7 @@ verify_files = False
                 filetype = cat_corr_src
 
                 # how to name output file
-                filepat = hsc_visit_ccd
+                filepat = hsc_unit_ccd
                 flabel = SRC
                 fsuffix = fits
 
@@ -400,7 +400,7 @@ verify_files = False
                 filetype = img_corr
 
                 # how to name output file
-                filepat = hsc_visit_ccd
+                filepat = hsc_unit_ccd
                 flabel = CORR
                 fsuffix = fits
 
@@ -418,7 +418,7 @@ verify_files = False
                 filetype = sfm_srcmatch
 
                 # how to name output file
-                filepat = hsc_visit_ccd
+                filepat = hsc_unit_ccd
                 flabel = SRCMATCH
                 fsuffix = fits
 
@@ -436,7 +436,7 @@ verify_files = False
                 filetype = sfm_srcmatchfull
 
                 # how to name output file
-                filepat = hsc_visit_ccd
+                filepat = hsc_unit_ccd
                 flabel = SRCMATCHFULL
                 fsuffix = fits
 
@@ -452,7 +452,7 @@ verify_files = False
             <sfm_calexpbkgd>
                 filetype = sfm_calexpbkgd
 
-                filepat = hsc_visit_ccd
+                filepat = hsc_unit_ccd
                 flabel = BKGD
                 fsuffix = fits
 
@@ -466,7 +466,7 @@ verify_files = False
             <sfm_oss_thumb>
                 filetype = sfm_oss_thumb
 
-                filepat = hsc_visit_ccd
+                filepat = hsc_unit_ccd
                 flabel = oss
                 fsuffix = png
 
@@ -480,7 +480,7 @@ verify_files = False
             <sfm_flattened_thumb>
                 filetype = sfm_flattened_thumb
 
-                filepat = hsc_visit_ccd
+                filepat = hsc_unit_ccd
                 flabel = flattened
                 fsuffix = png
 
@@ -494,7 +494,7 @@ verify_files = False
             <processccd_md_boost>
                 filetype = processccd_md_boost
 
-                filepat = hsc_visit_ccd
+                filepat = hsc_unit_ccd
                 flabel = processccd_md
                 fsuffix = boost
 
@@ -508,7 +508,7 @@ verify_files = False
             <sfm_icsrc>
                 filetype = sfm_icsrc
 
-                filepat = hsc_visit_ccd
+                filepat = hsc_unit_ccd
                 flabel = ICSRC
                 fsuffix = fits
 
@@ -1133,7 +1133,7 @@ verify_files = False
                 depends-newname = make_coadd_temp_exp.list.corr
                 match = tract, patch, filter
                 ignore_multiple_error = True
-                filepat = hsc_visit_ccd
+                filepat = hsc_unit_ccd
                 flabel = SRC
                 fsuffix = fits
 
@@ -1563,7 +1563,7 @@ verify_files = False
                 # FORCEDSRC-%(tract)04d-%(visit)07d-%(ccd)03d-r${reqnum}p${attnum:2}.fits
 
                 # how to name output file
-                filepat = hsc_tract_visit_ccd
+                filepat = hsc_unit_ccd
                 flabel = FORCEDSRC
                 fsuffix = fits
 
@@ -1884,8 +1884,7 @@ verify_files = False
 
 <filename_pattern>
     generic = ${flabel}_${unitname}-r${reqnum}p${attnum:2}.${fsuffix}
-    hsc_visit_ccd = ${flabel}-${visit:7}-${ccd:3}-r${reqnum}p${attnum:2}.${fsuffix}
-    hsc_tract_visit_ccd = ${flabel}-${tract:4}-${visit:7}-${ccd:3}-r${reqnum}p${attnum:2}.${fsuffix}
+    hsc_unit_ccd = ${flabel}-${unitname}-${visit:7}-${ccd:3}-r${reqnum}p${attnum:2}.${fsuffix}
     hsc_tract_patch_filter = ${flabel}-${filter}-${tract}-${patch}-r${reqnum}p${attnum:2}.${fsuffix}
     hsc_tract_patch_visit_filter = ${flabel}-${filter}-${tract}-${patch}-${visit}-r${reqnum}p${attnum:2}.${fsuffix}
     hsc_tract_patch = ${flabel}-${tract}-${patch}-r${reqnum}p${attnum:2}.${fsuffix}
