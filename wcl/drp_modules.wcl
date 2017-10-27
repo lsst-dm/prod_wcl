@@ -688,7 +688,7 @@ verify_files = False
         </wrapper>
         wrappername = genwrap_lsst.py
         modnamepat = ${modnamepat_tract_patch_filter}
-        loopobj = list.corr
+        loopobj = list.tempexp
         wrapperloop = tract, patch, filter
         <file>
             <tempexp>
@@ -770,7 +770,11 @@ verify_files = False
         </file>
         <list>
             <corr>
-                depends = make_coadd_temp_exp.list.corr
+                query_table = image
+                query_fields = filetype, ccd_overlap_patch.tract, pfw_attempt_id
+                join = image.visit=ccd_overlap_patch.visit, image.ccd=ccd_overlap_patch.ccd
+                filetype = img_corr
+                output_fields = filename,visit,filter,ccd,pointing,ccd_overlap_patch.tract,ccd_overlap_patch.patch
 
                 # how to create lists
                 divide_by = tract, patch, filter
@@ -787,7 +791,11 @@ verify_files = False
                 rundir = list/${modulename}
             </corr>
             <tempexp>
-                depends = make_coadd_temp_exp.file.deepcoadd_directwarp
+                query_table = image
+                query_fields = filetype, ccd_overlap_patch.tract, pfw_attempt_id
+                join = image.visit=ccd_overlap_patch.visit, image.patch=ccd_overlap_patch.patch
+                filetype = deepcoadd_directwarp
+                output_fields = filename,visit,filter,ccd_overlap_patch.tract,ccd_overlap_patch.patch
 
                 # how to create lists
                 divide_by = tract, patch, filter
@@ -1131,7 +1139,7 @@ verify_files = False
             </skymap>
             <cat_corr_src>
                 # how to name input file   ## could change to query
-                depends-newname = make_coadd_temp_exp.list.corr
+                depends-newname = assemble_coadd.list.corr
                 match = tract, patch, filter
                 ignore_multiple_error = True
                 filepat = hsc_unit_ccd
@@ -1542,7 +1550,7 @@ verify_files = False
             #    job_enddir = config
             #</config_forcedphotccd>
             <img_corr>
-                depends = make_coadd_temp_exp.list.corr
+                depends = assemble_coadd.list.corr
 
                 dirpat = hsc_ccd
                 job_enddir = corr
