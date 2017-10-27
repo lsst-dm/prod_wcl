@@ -6,7 +6,7 @@ reqnum = 3                    # a processing request number
 jira_id = DM-11959            # points to a jira_id describing the processing request
 tract = 8766                  # which tract to process
 
-blocklist = processccd, drp-patch #, drp-tract
+blocklist = processccd, makewarp, drp-patch #, drp-tract
 target_site = lsstdev
 campaign = MDEV
 pipeline = hscmini
@@ -35,10 +35,18 @@ fn_butler_registry_calib = ${dataset}_calibRegistry-${calib_version}-${butlerreg
         modulelist = query_processccd_fringe, processccd_fringe, query_processccd_nofringe, processccd_nofringe
         divide_jobs_by = ccd
     </processccd>
+    <makewarp>
+        modulelist = make_coadd_temp_exp
+        divide_jobs_by = patch, filter, visit
+    </makewarp>
     <drp-patch>
-        modulelist = make_coadd_temp_exp, assemble_coadd, detect_coadd_sources, merge_coadd_detections, measure_coadd_sources, merge_coadd_measurements, forced_phot_coadd
+        modulelist = assemble_coadd, detect_coadd_sources, merge_coadd_detections, measure_coadd_sources, merge_coadd_measurements, forced_phot_coadd
         divide_jobs_by = patch
     </drp-patch>
+    #<drp-patch>
+    #    modulelist = make_coadd_temp_exp, assemble_coadd, detect_coadd_sources, merge_coadd_detections, measure_coadd_sources, merge_coadd_measurements, forced_phot_coadd
+    #    divide_jobs_by = patch
+    #</drp-patch>
     #<drp-tract>
     #    modulelist = forced_phot_ccd
     #</drp-tract>

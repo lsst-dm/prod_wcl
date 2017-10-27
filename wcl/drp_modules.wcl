@@ -677,7 +677,7 @@ verify_files = False
                 doraise = _flag
                 no-versions = _flag
             </cmdline>
-            used = file.butler_template, file.butler_registry_raw, file.config_assemblecoadd, file.skymap, list.corr.img_corr, list.tempexp.tempexp
+            used = file.butler_template, file.butler_registry_raw, file.config_assemblecoadd, file.skymap, list.corr.corr, list.tempexp.tempexp
             was_generated_by = file.deepcoadd, file.assemblecoadd_md_boost
         </exec_1>
         <wrapper>
@@ -688,7 +688,8 @@ verify_files = False
         </wrapper>
         wrappername = genwrap_lsst.py
         modnamepat = ${modnamepat_tract_patch_filter}
-        loopobj = list.corr
+        #loopobj = list.corr
+        loopobj = list.tempexp
         wrapperloop = tract, patch, filter
         <file>
             <tempexp>
@@ -698,13 +699,13 @@ verify_files = False
                 dirpat = hsc_tract_patch_filter
                 job_outtype = deepCoadd
             </tempexp>
-            <img_corr>
+            <corr>
                 listonly = True
 
                 # where to put it
                 dirpat = hsc_ccd
                 job_enddir = corr
-            </img_corr>
+            </corr>
             <deepCoadd>
                 # what metadata to save
                 filetype = deepcoadd
@@ -770,11 +771,16 @@ verify_files = False
         </file>
         <list>
             <corr>
-                depends = make_coadd_temp_exp.list.corr
+                #depends = make_coadd_temp_exp.list.corr
+                query_table = image
+                query_fields = filetype, ccd_overlap_patch.tract, pfw_attempt_id
+                join = image.visit=ccd_overlap_patch.visit, image.ccd=ccd_overlap_patch.ccd
+                filetype = img_corr
+                output_fields = filename,visit,filter,ccd,pointing,ccd_overlap_patch.tract,ccd_overlap_patch.patch
 
                 # how to create lists
                 divide_by = tract, patch, filter
-                columns = img_corr.fullname, tract, patch, visit, ccd, filter
+                columns = corr.fullname, tract, patch, visit, ccd, filter
 
                 # what to name the list
                 filepat = list_tract_patch_filter
@@ -787,7 +793,12 @@ verify_files = False
                 rundir = list/${modulename}
             </corr>
             <tempexp>
-                depends = make_coadd_temp_exp.file.deepcoadd_directwarp
+                #depends = make_coadd_temp_exp.file.deepcoadd_directwarp
+                query_table = image
+                query_fields = filetype, ccd_overlap_patch.tract, pfw_attempt_id
+                join = image.visit=ccd_overlap_patch.visit, image.patch=ccd_overlap_patch.patch
+                filetype = deepcoadd_directwarp
+                output_fields = filename,visit,filter,ccd_overlap_patch.tract,ccd_overlap_patch.patch
 
                 # how to create lists
                 divide_by = tract, patch, filter
@@ -1131,7 +1142,7 @@ verify_files = False
             </skymap>
             <cat_corr_src>
                 # how to name input file   ## could change to query
-                depends-newname = make_coadd_temp_exp.list.corr
+                depends-newname = assemble_coadd.list.corr
                 match = tract, patch, filter
                 ignore_multiple_error = True
                 filepat = hsc_unit_ccd
@@ -1542,7 +1553,7 @@ verify_files = False
             #    job_enddir = config
             #</config_forcedphotccd>
             <img_corr>
-                depends = make_coadd_temp_exp.list.corr
+                depends = assemble_coadd.list.corr.img_corr
 
                 dirpat = hsc_ccd
                 job_enddir = corr
