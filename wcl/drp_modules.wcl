@@ -551,7 +551,7 @@ verify_files = False
 
             # open provenance model (minus was_derived_from)
             used = list.corr.img_corr, file.skymap, file.butler_registry_raw, file.butler_template, file.config_makecoaddtempexp
-            was_generated_by = file.deepcoadd_tempexp, file.makecoaddtempexp_md_boost
+            was_generated_by = file.deepcoadd_directwarp, file.makecoaddtempexp_md_boost
         </exec_1>
         <file>
             <config_makecoaddtempexp>
@@ -591,10 +591,10 @@ verify_files = False
             </img_corr>
 
             ### output files
-            <deepcoadd_tempexp>
-            # TODO: Rename this to match better with deepCoadd_directWarp
+            <deepcoadd_directwarp>
+                # Previously this was called deepcoadd_tempexp
                 # what metadata to save
-                filetype = deepcoadd_tempexp
+                filetype = deepcoadd_directwarp
 
                 # how to name output file
                 filepat = hsc_tract_patch_visit_filter
@@ -604,13 +604,14 @@ verify_files = False
                 # whether to save or compress
                 savefiles = true
                 compress_files = false
+                optional = true
 
                 # where to put it (jobroot=rundir, archive=ops_enddir)
                 # inside jobroot must match Butler template definition for this type (so sync problem)
                 dirpat = hsc_tract_patch_filter
                 ops_outtype = warp
                 job_outtype = deepCoadd
-            </deepcoadd_tempexp>
+            </deepcoadd_directwarp>
             <makecoaddtempexp_md_boost>
                 filetype = makecoaddtempexp_md_boost
 
@@ -786,7 +787,7 @@ verify_files = False
                 rundir = list/${modulename}
             </corr>
             <tempexp>
-                depends = make_coadd_temp_exp.file.deepcoadd_tempexp
+                depends = make_coadd_temp_exp.file.deepcoadd_directwarp
 
                 # how to create lists
                 divide_by = tract, patch, filter
