@@ -2,8 +2,8 @@
 
 # using pre-existing butler registry files
 
-reqnum = 2                    # a processing request number
-jira_id = DM-11864            # points to a jira_id describing the processing request
+reqnum = 3                    # a processing request number
+jira_id = DM-11959            # points to a jira_id describing the processing request
 tract = 8766                  # which tract to process
 
 blocklist = processccd, drp-patch #, drp-tract
