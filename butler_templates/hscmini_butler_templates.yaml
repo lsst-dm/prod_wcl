@@ -62,7 +62,7 @@ datasets:
     tableSeeingMap: "%(pointing)05d/%(filter)s/qa/seeingMap-${unitname}-%(visit)07d-%(ccd)03d-r${reqnum}p${attnum:2}.txt"
     tableSeeingGrid: "%(pointing)05d/%(filter)s/qa/seeingGrid-${unitname}-%(visit)07d-%(ccd)03d-r${reqnum}p${attnum:2}.txt"
     processCcd_metadata: "%(pointing)05d/%(filter)s/processCcd_metadata/processccd_md-${unitname}-%(visit)07d-%(ccd)03d-r${reqnum}p${attnum:2}.boost"
-    deep_makeCoaddTempExp_metadata: "deep_makeCoaddTempExp_metadata/%(filter)s/%(tract)d/%(patch)s/makecoaddtempexp_md-%(filter)s-%(tract)d-%(patch)s-r${reqnum}p${attnum:2}.boost"
+    deep_makeCoaddTempExp_metadata: "deep_makeCoaddTempExp_metadata/%(filter)s/%(tract)d/%(patch)s/makecoaddtempexp_md-%(filter)s-%(tract)d-%(patch)s-$opt{visit}-r${reqnum}p${attnum:2}.boost"
     deep_safeClipAssembleCoadd_metadata: "deep_safeClipAssembleCoadd_metadata/%(filter)s/%(tract)d/%(patch)s/assemblecoadd_md-%(filter)s-%(tract)d-%(patch)s-r${reqnum}p${attnum:2}.boost"
     detectCoaddSources_metadata: "detectCoaddSources_metadata/%(filter)s/%(tract)d/%(patch)s/detectcoaddsources_md-%(filter)s-%(tract)d-%(patch)s-r${reqnum}p${attnum:2}.boost"
     measureCoaddSources_metadata: "measureCoaddSources_metadata/%(filter)s/%(tract)d/%(patch)s/measurecoaddsources_md-%(filter)s-%(tract)d-%(patch)s-r${reqnum}p${attnum:2}.boost"

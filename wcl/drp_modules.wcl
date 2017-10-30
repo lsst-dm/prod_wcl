@@ -615,7 +615,7 @@ verify_files = False
             <makecoaddtempexp_md_boost>
                 filetype = makecoaddtempexp_md_boost
 
-                filepat = hsc_tract_patch_filter
+                filepat = hsc_tract_patch_visit_filter
                 flabel = makecoaddtempexp_md
                 fsuffix = boost
 
