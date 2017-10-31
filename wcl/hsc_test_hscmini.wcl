@@ -2,8 +2,8 @@
 
 # using pre-existing butler registry files
 
-reqnum = 2                    # a processing request number
-jira_id = DM-11864            # points to a jira_id describing the processing request
+reqnum = 3                    # a processing request number
+jira_id = DM-11959            # points to a jira_id describing the processing request
 tract = 0                     # which tract to process
 
 blocklist = processccd, drp-patch #, drp-tract
@@ -25,7 +25,7 @@ config_version = w_2017_33-v2     # what version of configs to use
 skymap_version = w_2017_33-v1-mini  # what version of skymap to use
 calib_version = ci_hsc
 ref_cats_path = /datasets/refcats/htm
-fn_butler_template = mini_butler_templates-w_2017_33-v8.yaml
+fn_butler_template = mini_butler_templates-w_2017_33-v9.yaml
 fn_butler_registry_raw = ${dataset}_registry-${butlerregistry_version}.sqlite3
 fn_butler_registry_calib = ${dataset}_calibRegistry-${butlerregistry_version}.sqlite3
 
