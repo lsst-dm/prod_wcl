@@ -676,8 +676,10 @@ verify_files = False
                 id = tract=${tract} patch=${patch} filter=${filter}
                 doraise = _flag
                 no-versions = _flag
+                # This is different from assembleCoadd.py default, hence needs override
+                configfile = ${file.config_assemblecoadd.fullname}
             </cmdline>
-            used = file.butler_template, file.butler_registry_raw, file.config_assemblecoadd, file.skymap, list.corr.corr, list.tempexp.tempexp
+            used = file.butler_template, file.butler_registry_raw, file.config_assemblecoadd, file.skymap, list.corr.corr, list.tempexp.tempexp, file.src
             was_generated_by = file.deepcoadd, file.assemblecoadd_md_boost
         </exec_1>
         <wrapper>
@@ -688,7 +690,6 @@ verify_files = False
         </wrapper>
         wrappername = genwrap_lsst.py
         modnamepat = ${modnamepat_tract_patch_filter}
-        #loopobj = list.corr
         loopobj = list.tempexp
         wrapperloop = tract, patch, filter
         <file>
@@ -706,6 +707,17 @@ verify_files = False
                 dirpat = hsc_ccd
                 job_enddir = corr
             </corr>
+            <src>
+                depends-newname = assemble_coadd.list.corr
+                match = tract, patch, filter
+                ignore_multiple_error = True
+                filepat = hsc_unit_ccd
+                flabel = SRC
+                fsuffix = fits
+
+                dirpat = hsc_ccd
+                job_enddir = output
+            </src>
             <deepCoadd>
                 # what metadata to save
                 filetype = deepcoadd
