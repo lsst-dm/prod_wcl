@@ -15,6 +15,9 @@ pipever = w_2017_33_v1
 
 filter_fringe = HSC-Y,NB0921
 filter_nofringe = HSC-G,HSC-I,HSC-R,HSC-Z
+# available visit tags:
+# tract 8766: minifringe, hsc_test_edge1
+# tract 8767: hsc_test_psfSel
 visit_tag = --visittag minifringe
 
 dataset = hsc               # used in names of butler registry files
