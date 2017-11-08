@@ -547,10 +547,12 @@ verify_files = False
                 doraise = _flag    # option is a flag
                 no-versions = _flag
                 c = doApplyUberCal=False
+                # This is different from makeCoaddTempExp.py default, hence needs override
+                configfile = ${file.config_makecoaddtempexp.fullname}
             </cmdline>
 
             # open provenance model (minus was_derived_from)
-            used = list.corr.img_corr, file.skymap, file.butler_registry_raw, file.butler_template, file.config_makecoaddtempexp
+            used = list.corr.img_corr, file.skymap, file.butler_registry_raw, file.butler_template, file.config_makecoaddtempexp, file.src
             was_generated_by = file.deepcoadd_directwarp, file.makecoaddtempexp_md_boost
         </exec_1>
         <file>
@@ -589,6 +591,17 @@ verify_files = False
                 dirpat = hsc_ccd
                 job_enddir = corr
             </img_corr>
+            <src>
+                depends-newname = make_coadd_temp_exp.list.corr
+                match = tract, patch, filter
+                ignore_multiple_error = True
+                filepat = hsc_unit_ccd
+                flabel = SRC
+                fsuffix = fits
+
+                dirpat = hsc_ccd
+                job_enddir = output
+            </src>
 
             ### output files
             <deepcoadd_directwarp>
@@ -676,8 +689,10 @@ verify_files = False
                 id = tract=${tract} patch=${patch} filter=${filter}
                 doraise = _flag
                 no-versions = _flag
+                # This is different from assembleCoadd.py default, hence needs override
+                configfile = ${file.config_assemblecoadd.fullname}
             </cmdline>
-            used = file.butler_template, file.butler_registry_raw, file.config_assemblecoadd, file.skymap, list.corr.img_corr, list.tempexp.tempexp
+            used = file.butler_template, file.butler_registry_raw, file.config_assemblecoadd, file.skymap, list.corr.img_corr, list.tempexp.tempexp, file.src
             was_generated_by = file.deepcoadd, file.assemblecoadd_md_boost
         </exec_1>
         <wrapper>
@@ -705,6 +720,17 @@ verify_files = False
                 dirpat = hsc_ccd
                 job_enddir = corr
             </img_corr>
+            <src>
+                depends-newname = assemble_coadd.list.corr
+                match = tract, patch, filter
+                ignore_multiple_error = True
+                filepat = hsc_unit_ccd
+                flabel = SRC
+                fsuffix = fits
+
+                dirpat = hsc_ccd
+                job_enddir = output
+            </src>
             <deepCoadd>
                 # what metadata to save
                 filetype = deepcoadd
