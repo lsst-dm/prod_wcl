@@ -1,0 +1,39 @@
+<<include $MY_WCL_DIR/operator_info.wcl>>
+
+verify_files = False
+
+reqnum = 10                   # a processing request number
+jira_id = DM-00000            # points to a jira_id describing the processing request
+
+target_site = lsstdev
+campaign = MDEV
+#pipeprod = mgstack
+#pipever = w_2017_33-git
+
+pipeprod = BPSstack
+#pipever = lsstv14-desdmv1.01dev
+pipever = lsstv14-desdmv1.01
+
+camera = H
+nite = 19150518
+ops_run_dir = ${project}/${pipeline}/${unitname}-r${reqnum}/p${attnum:2}
+pipeline = devel
+unitname = hostname
+
+blocklist = hostname
+<block>
+    <hostname>
+        modulelist = hostname
+    </hostname>
+</block>
+
+<module>
+    <hostname>
+        <exec_1>
+            execname = hostname
+        </exec_1>
+        modnamepat = ${modnamepat_nite_noband}
+        wrappername = genwrap_lsst.py
+    </hostname>
+</module>
+modnamepat_nite_noband = ${camera}_${nite}_r${reqnum}p${attnum:2}_${modulename}
