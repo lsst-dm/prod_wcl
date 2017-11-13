@@ -1,0 +1,59 @@
+operator = <your-login>
+project = <your-initials or operations value>
+email = <your-email>
+
+# how to connect to database from submit side
+submit_des_services = <location of credential wallet e.g. /home/login/.desservices.ini>
+submit_des_db_section = <section in credential wallet>
+
+# how to connect to database from target side
+# Following 2 lines can be moved inside site definitions to allow for 
+# different paths on different compute machines
+target_des_services = <location of credential wallet e.g. /home/login/.desservices.ini>
+target_des_db_section = <section in credential wallet>
+
+##############################################
+target_site = lsstdev     # default target_site, normally overridden in submit wcl
+home_archive = lsstbeta   # default home_archive, normally overridden in submit wcl
+
+# All _DEBUG lines can be left out until debugging framework or mangle issues
+<job_environment>
+    #INTGMISC_DEBUG = 10
+    #PFWCOMPRESS_DEBUG = 10
+    #PFWUTILS_DEBUG = 10
+    #PFWRUNJOB_DEBUG = 10
+    #BASICWRAP_DEBUG = 10
+    #FILEMGMT_DEBUG = 10
+    #FTMGMT_DEBUG = 10
+    #JOBFILEMVMT_DEBUG = 10
+    #DISK_UTILS_LOCAL_DEBUG = 10
+    #MAKECCDGONS_DEBUG = 10
+    home = $_CONDOR_SCRATCH_DIR
+    python_egg_cache = $_CONDOR_SCRATCH_DIR
+</job_environment>
+
+# submit_run_dir is where submit side files like condor logs and job stdout/err exist
+#      production runs normally share a directory
+submit_run_dir = /scratch/mgower/submit/${unitname}_r${reqnum}p${attnum:2}_${submit_time}
+submit_files_mvmt = filemgmt.job_mvmt_local.JobArchiveLocal
+
+# no target archive
+use_target_archive_input = never   # never, job
+use_target_archive_output = never  # wrapper, job, never
+use_home_archive_input = wrapper # 
+use_home_archive_output = job # wrapper, job, block, run, never
+
+<site>
+    <lsstdev>
+        # default nodeset value should match allocateNodes.py value
+        nodeset = mgnodes     
+
+        # can override where job scratch directory lives
+        #    important when debugging to put in a directory that
+        #    exists after job finishes
+        #jobroot = /scratch/mgower/jobroot   
+
+        # can override main eups install location 
+        # setupeups = /home/mgower/mgenv.sh
+    </lsstdev>
+</site>

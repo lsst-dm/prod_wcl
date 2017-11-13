@@ -1,4 +1,5 @@
-<<include lsstdev.des>>       # my information (e.g., email address) and some machine definitions.
+# MY_WCL_DIR must be defined as environment variable
+<<include $MY_WCL_DIR/operator_info.wcl>> # my information (e.g., email address) and some machine definitions.
 
 # using pre-existing butler registry files
 
@@ -11,7 +12,7 @@ target_site = lsstdev
 campaign = MDEV
 pipeline = hscmini
 pipeprod = BPSstack
-pipever = w_2017_33_v1
+pipever = lsstv14-desdmv1.01
 
 filter_fringe = HSC-Y,NB0921
 filter_nofringe = HSC-G,HSC-I,HSC-R,HSC-Z
@@ -55,4 +56,4 @@ fn_butler_registry_calib = ${dataset}_calibRegistry-${calib_version}-${butlerreg
     #</drp-tract>
 </block>
 
-<<include prod_wcl/wcl/drp_modules.wcl>>  # Include module, filetype_metadata, filename_pattern, directory_pattern
+<<include drp_modules.wcl>>  # Include module, filetype_metadata, filename_pattern, directory_pattern

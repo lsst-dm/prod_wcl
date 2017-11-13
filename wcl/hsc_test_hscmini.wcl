@@ -1,17 +1,22 @@
-<<include lsstdev.des>>       # my information (e.g., email address) and some machine definitions.
+# MY_WCL_DIR must be defined as environment variable
+<<include $MY_WCL_DIR/operator_info.wcl>> # my information (e.g., email address) and some machine definitions.
+
+verify_files = False
+
+reqnum = 2                   # a processing request number
+jira_id = DM-00000            # points to a jira_id describing the processing request
+
+target_site = lsstdev
+campaign = MDEV
 
 # using pre-existing butler registry files
 
-reqnum = 3                    # a processing request number
-jira_id = DM-11959            # points to a jira_id describing the processing request
 tract = 0                     # which tract to process
 
 blocklist = processccd, makewarp, drp-patch #, drp-tract
-target_site = lsstdev
-campaign = MDEV
 pipeline = hscmini
 pipeprod = BPSstack
-pipever = w_2017_33_v1
+pipever = lsstv14-desdmv1.01
 
 filter_fringe = HSC-Y,NB0921
 filter_nofringe = HSC-G,HSC-I,HSC-R,HSC-Z
@@ -48,4 +53,4 @@ fn_butler_registry_calib = ${dataset}_calibRegistry-${butlerregistry_version}.sq
     #</drp-tract>
 </block>
 
-<<include prod_wcl/wcl/drp_modules.wcl>>  # Include module, filetype_metadata, filename_pattern, directory_pattern
+<<include drp_modules.wcl>>  # Include module, filetype_metadata, filename_pattern, directory_pattern
