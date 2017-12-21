@@ -4,15 +4,15 @@
 # using pre-existing butler registry files
 
 reqnum = 3                    # a processing request number
-jira_id = DM-11959            # points to a jira_id describing the processing request
+jira_id = DM-13115            # points to a jira_id describing the processing request
 tract = 8766                  # which tract to process
 
 blocklist = processccd, makewarp, drp-patch #, drp-tract
 target_site = lsstdev
 campaign = MDEV
 pipeline = hscmini
-pipeprod = BPSstack
-pipever = lsstv14-desdmv1.01
+pipeprod = mgstack
+pipever = dev
 
 filter_fringe = HSC-Y,NB0921
 filter_nofringe = HSC-G,HSC-I,HSC-R,HSC-Z
@@ -23,13 +23,13 @@ visit_tag = --visittag minifringe
 
 dataset = hsc               # used in names of butler registry files
 overlap_version = hsc-v1
-butlerregistry_version = w_2017_33-v1  # what version of butler sqlite3 registries to use
-schema_version = w_2017_33-v1     # what version of configs to use
-config_version = w_2017_33-v4     # what version of configs to use
-skymap_version = w_2017_33-v1-hsc  # what version of skymap to use
+butlerregistry_version = w_2017_50-v1  # what version of butler sqlite3 registries to use
+schema_version = w_2017_50-v1     # what version of configs to use
+config_version = w_2017_50-v1     # what version of configs to use
+skymap_version = w_2017_50-v1-hsc  # what version of skymap to use
 calib_version = v20170105
 ref_cats_path = /datasets/refcats/htm
-fn_butler_template = rc_butler_templates-w_2017_33-v4.yaml
+fn_butler_template = rc_butler_templates-w_2017_50-v1.yaml
 fn_butler_registry_raw = ${dataset}_registry-${butlerregistry_version}.sqlite3
 fn_butler_registry_calib = ${dataset}_calibRegistry-${calib_version}-${butlerregistry_version}.sqlite3
 
