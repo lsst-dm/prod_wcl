@@ -1842,7 +1842,7 @@ verify_files = False
                 </o>
             </primary>
         </hdus>
-        metadata_table = image
+        metadata_table = catalog
         filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
     </photoCalib>
 </filetype_metadata>
