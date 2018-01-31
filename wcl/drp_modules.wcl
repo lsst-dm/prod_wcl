@@ -643,7 +643,7 @@ verify_files = False
                 dirpat = hsc_mosaic
                 ops_enddir = fcr
             </fcr>
-            <photoCalib>
+            <photocalib>
                 depends-newname = mosaic.list.corr
                 match = tract, filter
                 ignore_multiple_error = True
@@ -652,7 +652,7 @@ verify_files = False
                 fsuffix = fits
 
                 # Is filetype needed?
-                filetype = photoCalib
+                filetype = photocalib
 
                 # whether to save or compress
                 savefiles = true
@@ -660,8 +660,8 @@ verify_files = False
 
                 # where to put it (jobroot=job_enddir, archive=ops_enddir)
                 dirpat = hsc_mosaic
-                ops_enddir = photoCalib
-            </photoCalib>
+                ops_enddir = photocalib
+            </photocalib>
         </file>
         <list>
             <corr>
@@ -1824,7 +1824,7 @@ verify_files = False
         metadata_table = image
         filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
     </fcr>
-    <photoCalib>
+    <photocalib>
         <hdus>
             <primary>
                 <r>
@@ -1844,7 +1844,7 @@ verify_files = False
         </hdus>
         metadata_table = catalog
         filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
-    </photoCalib>
+    </photocalib>
 </filetype_metadata>
 
 <filename_pattern>
