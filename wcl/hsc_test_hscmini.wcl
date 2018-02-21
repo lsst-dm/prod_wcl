@@ -21,6 +21,7 @@ pipever = dev
 filter_fringe = HSC-Y,NB0921
 filter_nofringe = HSC-G,HSC-I,HSC-R,HSC-Z
 #visit_tag = --visittag ci_hsc  # visittag is not necessary as it includes the entire "ci_hsc" dataset
+require_ccd_overlap = --require_ccd_overlap
 
 dataset = ci_hsc               # used in names of butler registry files
 overlap_version = minihsc-v2
