@@ -43,6 +43,7 @@ datasets:
     ossThumb: "%(pointing)05d/%(filter)s/thumbs/oss-${unitname}-%(visit)07d-%(ccd)03d-r${reqnum}p${attnum:2}.png"
     flattenedThumb: "%(pointing)05d/%(filter)s/thumbs/flattened-${unitname}-%(visit)07d-%(ccd)03d-r${reqnum}p${attnum:2}.png"
     calexpThumb: "%(pointing)05d/%(filter)s/thumbs/corr-${unitname}-%(visit)07d-%(ccd)03d-r${reqnum}p${attnum:2}.png"
+    photoCalib: "jointcal-results/%(tract)04d/photoCalib-${unitname}-%(visit)07d-%(ccd)03d-r${reqnum}p${attnum:2}.fits"
     plotMagHist: "%(pointing)05d/%(filter)s/qa/magHist-${unitname}-%(visit)07d-%(ccd)03d-r${reqnum}p${attnum:2}.png"
     plotSeeingRough: "%(pointing)05d/%(filter)s/qa/seeingRough-${unitname}-%(visit)07d-%(ccd)03d-r${reqnum}p${attnum:2}.png"
     plotSeeingRobust: "%(pointing)05d/%(filter)s/qa/seeingRobust-${unitname}-%(visit)07d-%(ccd)03d-r${reqnum}p${attnum:2}.png"
