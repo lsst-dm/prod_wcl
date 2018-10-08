@@ -3,7 +3,7 @@
 
 verify_files = False
 
-reqnum = 2                   # a processing request number
+reqnum = 3                   # a processing request number
 jira_id = DM-00000            # points to a jira_id describing the processing request
 
 target_site = lsstdev
@@ -15,8 +15,8 @@ tract = 0                     # which tract to process
 
 blocklist = processccd, makewarp, drp-patch #, drp-tract
 pipeline = hscmini
-pipeprod = BPSstack
-pipever = lsstv14-desdmv1.01
+pipeprod = bps
+pipever = w_2018_36-master
 
 filter_fringe = HSC-Y,NB0921
 filter_nofringe = HSC-G,HSC-I,HSC-R,HSC-Z
