@@ -24,13 +24,13 @@ filter_nofringe = HSC-G,HSC-I,HSC-R,HSC-Z
 
 dataset = ci_hsc               # used in names of butler registry files
 overlap_version = minihsc-v2
-butlerregistry_version = w_2017_33-v1  # what version of butler sqlite3 registries to use
-schema_version = w_2017_33-v1     # what version of configs to use
-config_version = w_2017_33-v4     # what version of configs to use
-skymap_version = w_2017_33-v1-mini  # what version of skymap to use
+butlerregistry_version = w_2018_36-v1  # what version of butler sqlite3 registries to use
+schema_version = w_2018_36-v1     # what version of configs to use
+config_version = w_2018_36-v1     # what version of configs to use
+skymap_version = w_2018_36-v1-mini  # what version of skymap to use
 calib_version = ci_hsc
 ref_cats_path = /datasets/refcats/htm
-fn_butler_template = mini_butler_templates-w_2017_33-v9.yaml
+fn_butler_template = mini_butler_templates-w_2018_36-v1.yaml
 fn_butler_registry_raw = ${dataset}_registry-${butlerregistry_version}.sqlite3
 fn_butler_registry_calib = ${dataset}_calibRegistry-${butlerregistry_version}.sqlite3
 
