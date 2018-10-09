@@ -37,6 +37,7 @@ verify_files = False
                 doraise = _flag
                 no-versions = _flag
                 id = visit=${visit} ccd=${ccd}
+                config = isr.doAttachTransmissionCurve=False
             </cmdline>
         </exec_1>
         <file>
@@ -295,6 +296,7 @@ verify_files = False
                 doraise = _flag
                 no-versions = _flag
                 id = visit=${visit} ccd=${ccd}
+                config = isr.doAttachTransmissionCurve=False
             </cmdline>
         </exec_1>
         <file>
