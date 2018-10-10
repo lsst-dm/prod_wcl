@@ -45,7 +45,7 @@ fn_butler_registry_calib = ${dataset}_calibRegistry-${butlerregistry_version}.sq
         divide_jobs_by = patch, filter, visit
     </makewarp>
     <drp-patch>
-        modulelist = assemble_coadd, detect_coadd_sources, merge_coadd_detections, measure_coadd_sources, merge_coadd_measurements, forced_phot_coadd
+        modulelist = assemble_coadd, detect_coadd_sources, merge_coadd_detections, deblend_coadd_sources, measure_coadd_sources, merge_coadd_measurements, forced_phot_coadd
         divide_jobs_by = patch
     </drp-patch>
     #<drp-tract>

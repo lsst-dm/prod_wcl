@@ -1097,6 +1097,141 @@ verify_files = False
         </list>
         end_mod_dir = ${modulename}/${patch}/
     </merge_coadd_detections>
+    <deblend_coadd_sources>
+        <exec_1>
+            execname = deblendCoaddSources.py
+            cmd_hyphen = mixed_gnu  # use single hyphen for single char options and double hyphen for multiple char options
+            <cmdline>
+                _01 = ${job_repo_dir}
+                output = ${job_repo_dir}
+                doraise = _flag
+                no-versions = _flag
+                id = tract=${tract} patch=${patch} filter=${filter}
+            </cmdline>
+            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_deblendedflux, file.schema_deepcoadd_deblendedmodel, file.config_deblendcoaddsources, file.skymap #, file.cat_corr_src, file.deepcoadd_calexp, file.deepcoadd_mergedet
+            was_generated_by = file.deepcoadd_deblendedflux #, file.deepcoadd_deblendedmodel
+        </exec_1>
+        <wrapper>
+            job_repo_dir = ${job_repo_dir}
+            mapper = lsst.obs.hsc.HscMapper
+            butler_template = ${file.butler_template.fullname}
+            ref_cats_root = ${ref_cats_path}
+        </wrapper>
+        wrappername = genwrap_lsst.py
+        modnamepat = ${modnamepat_tract_patch_filter}
+        loopobj = file.deepcoadd_calexp
+        wrapperloop = tract, patch, filter
+        <file>
+            ### inputs
+            <config_deblendcoaddsources>
+                filename = config-deblend-${config_version}.py
+                dirpat = generic_repo
+                job_enddir = config
+            </config_deblendcoaddsources>
+            <butler_registry_raw>
+                # how to name input file
+                filename = ${fn_butler_registry_raw}
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                rename_file = registry.sqlite3
+                dirpat = generic_norepo
+                job_enddir = ${job_repo_dir}
+            </butler_registry_raw>
+           <butler_template>
+                # how to name input file
+                filename = ${fn_butler_template}
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                dirpat = generic_norepo
+                job_enddir = config
+            </butler_template>
+            <schema_deepcoadd_deblendedflux>
+                filename = schema-deepCoadd_deblendedFlux-${schema_version}.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_deepcoadd_deblendedflux>
+            <schema_deepcoadd_deblendedmodel>
+                filename = schema-deepCoadd_deblendedModel-${schema_version}.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_deepcoadd_deblendedmodel>
+            <skymap>
+                filename = skyMap-${skymap_version}.pickle
+                dirpat = generic_repo
+                job_enddir = deepCoadd
+            </skymap>
+            <cat_corr_src>
+                # how to name input file   ## could change to query
+                depends-newname = assemble_coadd.list.corr
+                match = tract, patch, filter
+                ignore_multiple_error = True
+                filepat = hsc_unit_ccd
+                flabel = SRC
+                fsuffix = fits
+
+                # where to put it
+                dirpat = hsc_ccd
+                job_enddir = output
+            </cat_corr_src>
+            <deepcoadd_calexp>
+                depends = detect_coadd_sources.file.deepcoadd_calexp
+                match = tract, patch, filter
+
+                # where to put it
+                dirpat = generic_repo
+                job_enddir = deepCoadd-results/${filter}/${tract}/${patch}
+            </deepcoadd_calexp>
+            <deepcoadd_mergedet>
+                depends = merge_coadd_detections.file.deepcoadd_mergedet
+                match = tract, patch
+
+                # where to put it
+                dirpat = hsc_patch_merged
+                job_outtype = deepCoadd-results
+            </deepcoadd_mergedet>
+
+            ### outputs
+            <deepcoadd_deblendedflux>
+                # what metadata to save
+                filetype = deepcoadd_deblendedflux
+
+                # how to name output file
+                # deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/deblendedFlux-%(filter)s-%(tract)d-%(patch)s.fits
+                filepat = hsc_tract_patch_filter
+                flabel = deblendedFlux
+                fsuffix = fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it
+                dirpat = hsc_tract_patch_filter
+                ops_outtype = coadd
+                job_outtype = deepCoadd-results
+            </deepcoadd_deblendedflux>
+            <deepcoadd_deblendedmodel>
+                # what metadata to save
+                filetype = deepcoadd_deblendedmodel
+
+                # how to name output file
+                # deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/deblendedModel-%(filter)s-%(tract)d-%(patch)s.fits
+                filepat = hsc_tract_patch_filter
+                flabel = deblendedModel
+                fsuffix = fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it
+                dirpat = hsc_tract_patch_filter
+                ops_outtype = coadd
+                job_outtype = deepCoadd-results
+            </deepcoadd_deblendedmodel>
+        </file>
+        end_mod_dir = ${modulename}/${patch}/${filter}
+    </deblend_coadd_sources>
     <measure_coadd_sources>
         <exec_1>
             execname = measureCoaddSources.py
@@ -1108,7 +1243,7 @@ verify_files = False
                 no-versions = _flag
                 id = tract=${tract} patch=${patch} filter=${filter}
             </cmdline>
-            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_meas, file.schema_deepcoadd_mergedet, file.schema_deepcoadd_peak, file.config_measurecoaddsources, file.skymap, file.cat_corr_src, file.deepcoadd_calexp, file.deepcoadd_mergedet
+            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_meas, file.schema_deepcoadd_mergedet, file.schema_deepcoadd_peak, file.config_measurecoaddsources, file.skymap, file.cat_corr_src, file.deepcoadd_calexp, file.deepcoadd_deblendedflux
             was_generated_by = file.deepcoadd_meas, file.deepcoadd_measmatch, file.deepcoadd_measmatchfull, file.measurecoaddsources_md_boost
         </exec_1>
         <wrapper>
@@ -1186,14 +1321,14 @@ verify_files = False
                 dirpat = generic_repo
                 job_enddir = deepCoadd-results/${filter}/${tract}/${patch}
             </deepcoadd_calexp>
-            <deepcoadd_mergedet>
-                depends = merge_coadd_detections.file.deepcoadd_mergedet
-                match = tract, patch
+            <deepcoadd_deblendedflux>
+                depends = deblend_coadd_sources.file.deepcoadd_deblendedflux
+                match = tract, patch, filter
 
                 # where to put it
-                dirpat = hsc_patch_merged
-                job_outtype = deepCoadd-results
-            </deepcoadd_mergedet>
+                dirpat = generic_repo
+                job_enddir = deepCoadd-results/${filter}/${tract}/${patch}
+            </deepcoadd_deblendedflux>
 
             ### outputs
             <deepcoadd_mergedet>
@@ -1618,6 +1753,39 @@ verify_files = False
         end_mod_dir = ${modulename}/${filter}/${visit}
     </forced_phot_ccd>
 </module>
+
+<filetype_metadata>
+    <deepcoadd_deblendedflux>
+        <hdus>
+            <primary>
+                <r>
+                    <w>
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+            </primary>
+        </hdus>
+        metadata_table = desfile
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </deepcoadd_deblendedflux>
+    <deepcoadd_deblendedmodel>
+        <hdus>
+            <primary>
+                <r>
+                    <w>
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+            </primary>
+        </hdus>
+        metadata_table = desfile
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </deepcoadd_deblendedmodel>
+</filetype_metadata>
 
 <directory_pattern>
     <lsst_calib>
