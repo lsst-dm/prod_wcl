@@ -1331,26 +1331,6 @@ verify_files = False
             </deepcoadd_deblendedflux>
 
             ### outputs
-            <deepcoadd_mergedet>
-                # what metadata to save
-                filetype = deepcoadd_mergedet
-
-                # how to name output file
-                filepat = hsc_tract_patch
-                flabel = mergeDet
-                fsuffix = fits
-
-                # whether to save or compress
-                savefiles = true
-                compress_files = false
-
-                # where to put it
-                dirpat = hsc_patch_merged
-                ops_outtype = coadd
-                job_outtype = deepCoadd-results
-            </deepcoadd_mergedet>
-
-            ### outputs
             <deepcoadd_meas>
                 # what metadata to save
                 filetype = deepcoadd_meas
