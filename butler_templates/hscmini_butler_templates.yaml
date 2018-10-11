@@ -6,6 +6,7 @@ exposures:
     fcr: "jointcal-results/%(tract)04d/fcr-${unitname}-%(visit)07d-%(ccd)03d-r${reqnum}p${attnum:2}.fits"
     calibrated_exp: "%(pointing)05d/%(filter)s/corr/%(tract)04d/CALEXP-${unitname}-%(visit)07d-%(ccd)03d-r${reqnum}p${attnum:2}.fits"
     deepCoadd: "deepCoadd/%(filter)s/%(tract)d/%(patch)s/deepCoadd-%(filter)s-%(tract)d-%(patch)s-r${reqnum}p${attnum:2}.fits"
+    deepCoadd_nImage: "deepCoadd/%(filter)s/%(tract)d/%(patch)s/deepCoadd_nImage-%(filter)s-%(tract)d-%(patch)s-r${reqnum}p${attnum:2}.fits"
     deepCoadd_tempExp: "deepCoadd/%(filter)s/%(tract)d/%(patch)s/warp-%(filter)s-%(tract)d-%(patch)s-%(visit)d-r${reqnum}p${attnum:2}.fits"
     deepCoadd_directWarp: "deepCoadd/%(filter)s/%(tract)d/%(patch)s/warp-%(filter)s-%(tract)d-%(patch)s-%(visit)d-r${reqnum}p${attnum:2}.fits"
     deepCoadd_psfMatchedWarp: "deepCoadd/%(filter)s/%(tract)d/%(patch)s/psfMatchedWarp-%(filter)s-%(tract)d-%(patch)s-%(visit)d-r${reqnum}p${attnum:2}.fits"

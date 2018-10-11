@@ -716,7 +716,7 @@ verify_files = False
                 configfile = ${file.config_assemblecoadd.fullname}
             </cmdline>
             used = file.butler_template, file.butler_registry_raw, file.config_assemblecoadd, file.skymap, list.corr.img_corr, list.tempexp.tempexp, file.src
-            was_generated_by = file.deepcoadd, file.assemblecoadd_md_boost
+            was_generated_by = file.deepcoadd, file.deepcoadd_nimage, file.assemblecoadd_md_boost
         </exec_1>
         <wrapper>
             per_file_cmdline = list.corr.img_corr:--selectId visit=$(visit) ccd=$(ccd)
@@ -774,6 +774,26 @@ verify_files = False
                 ops_outtype = coadd
                 job_outtype = deepCoadd
             </deepCoadd>
+            <deepcoadd_nimage>
+                # what metadata to save
+                filetype = deepcoadd_nimage
+
+                # how to name output file
+                ### changed in obs_base/policy/exposures.yaml
+                filepat = hsc_tract_patch_filter
+                flabel = deepCoadd_nImage
+                fsuffix = fits
+                ##filename = ${patch}_nimage.fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it
+                dirpat = hsc_tract_patch_filter
+                ops_outtype = coadd
+                job_outtype = deepCoadd
+            </deepcoadd_nimage>
             <assemblecoadd_md_boost>
                 # The corresponding Butler dataset type is deep_safeClipAssembleCoadd_metadatawith the current default config
                 filetype = assemblecoadd_md_boost
@@ -1771,6 +1791,21 @@ verify_files = False
         metadata_table = desfile
         filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
     </deepcoadd_psfmatchedwarp>
+    <deepcoadd_nimage>
+        <hdus>
+            <primary>
+                <r>
+                    <w>
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+            </primary>
+        </hdus>
+        metadata_table = desfile
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </deepcoadd_nimage>
     <deepcoadd_deblendedflux>
         <hdus>
             <primary>
