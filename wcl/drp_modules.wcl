@@ -555,7 +555,7 @@ verify_files = False
 
             # open provenance model (minus was_derived_from)
             used = list.corr.img_corr, file.skymap, file.butler_registry_raw, file.butler_template, file.config_makecoaddtempexp, file.src
-            was_generated_by = file.deepcoadd_directwarp, file.makecoaddtempexp_md_boost
+            was_generated_by = file.deepcoadd_directwarp, file.deepcoadd_psfmatchedwarp, file.makecoaddtempexp_md_boost
         </exec_1>
         <file>
             <config_makecoaddtempexp>
@@ -627,6 +627,27 @@ verify_files = False
                 ops_outtype = warp
                 job_outtype = deepCoadd
             </deepcoadd_directwarp>
+            <deepcoadd_psfmatchedwarp>
+                # Previously this was called deepcoadd_tempexp
+                # what metadata to save
+                filetype = deepcoadd_psfmatchedwarp
+
+                # how to name output file
+                filepat = hsc_tract_patch_visit_filter
+                flabel = psfMatchedWarp
+                fsuffix = fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+                optional = true
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                # inside jobroot must match Butler template definition for this type (so sync problem)
+                dirpat = hsc_tract_patch_filter
+                ops_outtype = warp
+                job_outtype = deepCoadd
+            </deepcoadd_psfmatchedwarp>
             <makecoaddtempexp_md_boost>
                 filetype = makecoaddtempexp_md_boost
 
@@ -1735,6 +1756,21 @@ verify_files = False
 </module>
 
 <filetype_metadata>
+    <deepcoadd_psfmatchedwarp>
+        <hdus>
+            <primary>
+                <r>
+                    <w>
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+            </primary>
+        </hdus>
+        metadata_table = desfile
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </deepcoadd_psfmatchedwarp>
     <deepcoadd_deblendedflux>
         <hdus>
             <primary>
