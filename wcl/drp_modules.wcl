@@ -37,6 +37,7 @@ verify_files = False
                 doraise = _flag
                 no-versions = _flag
                 id = visit=${visit} ccd=${ccd}
+                config = isr.doAttachTransmissionCurve=False
             </cmdline>
         </exec_1>
         <file>
@@ -295,6 +296,7 @@ verify_files = False
                 doraise = _flag
                 no-versions = _flag
                 id = visit=${visit} ccd=${ccd}
+                config = isr.doAttachTransmissionCurve=False
             </cmdline>
         </exec_1>
         <file>
@@ -553,7 +555,7 @@ verify_files = False
 
             # open provenance model (minus was_derived_from)
             used = list.corr.img_corr, file.skymap, file.butler_registry_raw, file.butler_template, file.config_makecoaddtempexp, file.src
-            was_generated_by = file.deepcoadd_directwarp, file.makecoaddtempexp_md_boost
+            was_generated_by = file.deepcoadd_directwarp, file.deepcoadd_psfmatchedwarp, file.makecoaddtempexp_md_boost
         </exec_1>
         <file>
             <config_makecoaddtempexp>
@@ -625,6 +627,27 @@ verify_files = False
                 ops_outtype = warp
                 job_outtype = deepCoadd
             </deepcoadd_directwarp>
+            <deepcoadd_psfmatchedwarp>
+                # Previously this was called deepcoadd_tempexp
+                # what metadata to save
+                filetype = deepcoadd_psfmatchedwarp
+
+                # how to name output file
+                filepat = hsc_tract_patch_visit_filter
+                flabel = psfMatchedWarp
+                fsuffix = fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+                optional = true
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                # inside jobroot must match Butler template definition for this type (so sync problem)
+                dirpat = hsc_tract_patch_filter
+                ops_outtype = warp
+                job_outtype = deepCoadd
+            </deepcoadd_psfmatchedwarp>
             <makecoaddtempexp_md_boost>
                 filetype = makecoaddtempexp_md_boost
 
@@ -693,7 +716,7 @@ verify_files = False
                 configfile = ${file.config_assemblecoadd.fullname}
             </cmdline>
             used = file.butler_template, file.butler_registry_raw, file.config_assemblecoadd, file.skymap, list.corr.img_corr, list.tempexp.tempexp, file.src
-            was_generated_by = file.deepcoadd, file.assemblecoadd_md_boost
+            was_generated_by = file.deepcoadd, file.deepcoadd_nimage, file.assemblecoadd_md_boost
         </exec_1>
         <wrapper>
             per_file_cmdline = list.corr.img_corr:--selectId visit=$(visit) ccd=$(ccd)
@@ -751,6 +774,26 @@ verify_files = False
                 ops_outtype = coadd
                 job_outtype = deepCoadd
             </deepCoadd>
+            <deepcoadd_nimage>
+                # what metadata to save
+                filetype = deepcoadd_nimage
+
+                # how to name output file
+                ### changed in obs_base/policy/exposures.yaml
+                filepat = hsc_tract_patch_filter
+                flabel = deepCoadd_nImage
+                fsuffix = fits
+                ##filename = ${patch}_nimage.fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it
+                dirpat = hsc_tract_patch_filter
+                ops_outtype = coadd
+                job_outtype = deepCoadd
+            </deepcoadd_nimage>
             <assemblecoadd_md_boost>
                 # The corresponding Butler dataset type is deep_safeClipAssembleCoadd_metadatawith the current default config
                 filetype = assemblecoadd_md_boost
@@ -1095,6 +1138,141 @@ verify_files = False
         </list>
         end_mod_dir = ${modulename}/${patch}/
     </merge_coadd_detections>
+    <deblend_coadd_sources>
+        <exec_1>
+            execname = deblendCoaddSources.py
+            cmd_hyphen = mixed_gnu  # use single hyphen for single char options and double hyphen for multiple char options
+            <cmdline>
+                _01 = ${job_repo_dir}
+                output = ${job_repo_dir}
+                doraise = _flag
+                no-versions = _flag
+                id = tract=${tract} patch=${patch} filter=${filter}
+            </cmdline>
+            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_deblendedflux, file.schema_deepcoadd_deblendedmodel, file.config_deblendcoaddsources, file.skymap #, file.cat_corr_src, file.deepcoadd_calexp, file.deepcoadd_mergedet
+            was_generated_by = file.deepcoadd_deblendedflux #, file.deepcoadd_deblendedmodel
+        </exec_1>
+        <wrapper>
+            job_repo_dir = ${job_repo_dir}
+            mapper = lsst.obs.hsc.HscMapper
+            butler_template = ${file.butler_template.fullname}
+            ref_cats_root = ${ref_cats_path}
+        </wrapper>
+        wrappername = genwrap_lsst.py
+        modnamepat = ${modnamepat_tract_patch_filter}
+        loopobj = file.deepcoadd_calexp
+        wrapperloop = tract, patch, filter
+        <file>
+            ### inputs
+            <config_deblendcoaddsources>
+                filename = config-deblend-${config_version}.py
+                dirpat = generic_repo
+                job_enddir = config
+            </config_deblendcoaddsources>
+            <butler_registry_raw>
+                # how to name input file
+                filename = ${fn_butler_registry_raw}
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                rename_file = registry.sqlite3
+                dirpat = generic_norepo
+                job_enddir = ${job_repo_dir}
+            </butler_registry_raw>
+           <butler_template>
+                # how to name input file
+                filename = ${fn_butler_template}
+
+                # where to put it (jobroot=rundir, archive=ops_enddir)
+                dirpat = generic_norepo
+                job_enddir = config
+            </butler_template>
+            <schema_deepcoadd_deblendedflux>
+                filename = schema-deepCoadd_deblendedFlux-${schema_version}.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_deepcoadd_deblendedflux>
+            <schema_deepcoadd_deblendedmodel>
+                filename = schema-deepCoadd_deblendedModel-${schema_version}.fits
+                dirpat = generic_repo
+                job_enddir = schema
+            </schema_deepcoadd_deblendedmodel>
+            <skymap>
+                filename = skyMap-${skymap_version}.pickle
+                dirpat = generic_repo
+                job_enddir = deepCoadd
+            </skymap>
+            <cat_corr_src>
+                # how to name input file   ## could change to query
+                depends-newname = assemble_coadd.list.corr
+                match = tract, patch, filter
+                ignore_multiple_error = True
+                filepat = hsc_unit_ccd
+                flabel = SRC
+                fsuffix = fits
+
+                # where to put it
+                dirpat = hsc_ccd
+                job_enddir = output
+            </cat_corr_src>
+            <deepcoadd_calexp>
+                depends = detect_coadd_sources.file.deepcoadd_calexp
+                match = tract, patch, filter
+
+                # where to put it
+                dirpat = generic_repo
+                job_enddir = deepCoadd-results/${filter}/${tract}/${patch}
+            </deepcoadd_calexp>
+            <deepcoadd_mergedet>
+                depends = merge_coadd_detections.file.deepcoadd_mergedet
+                match = tract, patch
+
+                # where to put it
+                dirpat = hsc_patch_merged
+                job_outtype = deepCoadd-results
+            </deepcoadd_mergedet>
+
+            ### outputs
+            <deepcoadd_deblendedflux>
+                # what metadata to save
+                filetype = deepcoadd_deblendedflux
+
+                # how to name output file
+                # deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/deblendedFlux-%(filter)s-%(tract)d-%(patch)s.fits
+                filepat = hsc_tract_patch_filter
+                flabel = deblendedFlux
+                fsuffix = fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it
+                dirpat = hsc_tract_patch_filter
+                ops_outtype = coadd
+                job_outtype = deepCoadd-results
+            </deepcoadd_deblendedflux>
+            <deepcoadd_deblendedmodel>
+                # what metadata to save
+                filetype = deepcoadd_deblendedmodel
+
+                # how to name output file
+                # deepCoadd-results/%(filter)s/%(tract)d/%(patch)s/deblendedModel-%(filter)s-%(tract)d-%(patch)s.fits
+                filepat = hsc_tract_patch_filter
+                flabel = deblendedModel
+                fsuffix = fits
+
+                # whether to save or compress
+                savefiles = true
+                compress_files = false
+
+                # where to put it
+                dirpat = hsc_tract_patch_filter
+                ops_outtype = coadd
+                job_outtype = deepCoadd-results
+            </deepcoadd_deblendedmodel>
+        </file>
+        end_mod_dir = ${modulename}/${patch}/${filter}
+    </deblend_coadd_sources>
     <measure_coadd_sources>
         <exec_1>
             execname = measureCoaddSources.py
@@ -1106,7 +1284,7 @@ verify_files = False
                 no-versions = _flag
                 id = tract=${tract} patch=${patch} filter=${filter}
             </cmdline>
-            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_meas, file.schema_deepcoadd_mergedet, file.schema_deepcoadd_peak, file.config_measurecoaddsources, file.skymap, file.cat_corr_src, file.deepcoadd_calexp, file.deepcoadd_mergedet
+            used = file.butler_template, file.butler_registry_raw, file.schema_deepcoadd_meas, file.schema_deepcoadd_mergedet, file.schema_deepcoadd_peak, file.config_measurecoaddsources, file.skymap, file.cat_corr_src, file.deepcoadd_calexp, file.deepcoadd_deblendedflux
             was_generated_by = file.deepcoadd_meas, file.deepcoadd_measmatch, file.deepcoadd_measmatchfull, file.measurecoaddsources_md_boost
         </exec_1>
         <wrapper>
@@ -1184,34 +1362,14 @@ verify_files = False
                 dirpat = generic_repo
                 job_enddir = deepCoadd-results/${filter}/${tract}/${patch}
             </deepcoadd_calexp>
-            <deepcoadd_mergedet>
-                depends = merge_coadd_detections.file.deepcoadd_mergedet
-                match = tract, patch
+            <deepcoadd_deblendedflux>
+                depends = deblend_coadd_sources.file.deepcoadd_deblendedflux
+                match = tract, patch, filter
 
                 # where to put it
-                dirpat = hsc_patch_merged
-                job_outtype = deepCoadd-results
-            </deepcoadd_mergedet>
-
-            ### outputs
-            <deepcoadd_mergedet>
-                # what metadata to save
-                filetype = deepcoadd_mergedet
-
-                # how to name output file
-                filepat = hsc_tract_patch
-                flabel = mergeDet
-                fsuffix = fits
-
-                # whether to save or compress
-                savefiles = true
-                compress_files = false
-
-                # where to put it
-                dirpat = hsc_patch_merged
-                ops_outtype = coadd
-                job_outtype = deepCoadd-results
-            </deepcoadd_mergedet>
+                dirpat = generic_repo
+                job_enddir = deepCoadd-results/${filter}/${tract}/${patch}
+            </deepcoadd_deblendedflux>
 
             ### outputs
             <deepcoadd_meas>
@@ -1616,6 +1774,69 @@ verify_files = False
         end_mod_dir = ${modulename}/${filter}/${visit}
     </forced_phot_ccd>
 </module>
+
+<filetype_metadata>
+    <deepcoadd_psfmatchedwarp>
+        <hdus>
+            <primary>
+                <r>
+                    <w>
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+            </primary>
+        </hdus>
+        metadata_table = desfile
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </deepcoadd_psfmatchedwarp>
+    <deepcoadd_nimage>
+        <hdus>
+            <primary>
+                <r>
+                    <w>
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+            </primary>
+        </hdus>
+        metadata_table = desfile
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </deepcoadd_nimage>
+    <deepcoadd_deblendedflux>
+        <hdus>
+            <primary>
+                <r>
+                    <w>
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+            </primary>
+        </hdus>
+        metadata_table = desfile
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </deepcoadd_deblendedflux>
+    <deepcoadd_deblendedmodel>
+        <hdus>
+            <primary>
+                <r>
+                    <w>
+                        pfw_attempt_id = pfw_attempt_id
+                        filename = filename
+                        filetype = filetype
+                    </w>
+                </r>
+            </primary>
+        </hdus>
+        metadata_table = desfile
+        filetype_mgmt = filemgmt.ftmgmt_generic.FtMgmtGeneric
+    </deepcoadd_deblendedmodel>
+</filetype_metadata>
 
 <directory_pattern>
     <lsst_calib>
