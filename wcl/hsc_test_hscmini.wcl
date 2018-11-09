@@ -3,7 +3,7 @@
 
 verify_files = False
 
-reqnum = 3                   # a processing request number
+reqnum = 4                   # a processing request number
 jira_id = DM-00000            # points to a jira_id describing the processing request
 
 target_site = lsstdev
@@ -30,7 +30,7 @@ config_version = w_2018_41-v1     # what version of configs to use
 skymap_version = w_2018_36-v1-mini  # what version of skymap to use
 calib_version = ci_hsc
 ref_cats_path = /datasets/refcats/htm
-fn_butler_template = mini_butler_templates-w_2018_41-v1.yaml
+fn_butler_template = mini_butler_templates-w_2018_41-v2.yaml
 fn_butler_registry_raw = ${dataset}_registry-${butlerregistry_version}.sqlite3
 fn_butler_registry_calib = ${dataset}_calibRegistry-${butlerregistry_version}.sqlite3
 
