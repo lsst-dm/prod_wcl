@@ -233,13 +233,13 @@ verify_files = False
 
                 filepat = hsc_unit_ccd
                 flabel = processccd_md
-                fsuffix = boost
+                fsuffix = yaml
 
                 savefiles = true
                 compress_files = false
 
                 dirpat = hsc_ccd
-                ops_enddir = boost
+                ops_enddir = md
                 job_enddir = processCcd_metadata
             </processccd_md_boost>
             <sfm_icsrc>
@@ -498,13 +498,13 @@ verify_files = False
 
                 filepat = hsc_unit_ccd
                 flabel = processccd_md
-                fsuffix = boost
+                fsuffix = yaml
 
                 savefiles = true
                 compress_files = false
 
                 dirpat = hsc_ccd
-                ops_enddir = boost
+                ops_enddir = md
                 job_enddir = processCcd_metadata
             </processccd_md_boost>
             <sfm_icsrc>
@@ -653,13 +653,13 @@ verify_files = False
 
                 filepat = hsc_tract_patch_visit_filter
                 flabel = makecoaddtempexp_md
-                fsuffix = boost
+                fsuffix = yaml
 
                 savefiles = false
                 compress_files = false
 
                 dirpat = hsc_tract_patch_filter
-                ops_outtype = boost
+                ops_outtype = md
                 job_outtype = deep_makeCoaddTempExp_metadata
             </makecoaddtempexp_md_boost>
         </file>
@@ -800,13 +800,13 @@ verify_files = False
 
                 filepat = hsc_tract_patch_filter
                 flabel = assemblecoadd_md
-                fsuffix = boost
+                fsuffix = yaml
 
                 savefiles = false
                 compress_files = false
 
                 dirpat = hsc_tract_patch_filter
-                ops_outtype = boost
+                ops_outtype = md
                 job_outtype = deep_safeClipAssembleCoadd_metadata
             </assemblecoadd_md_boost>
             <config_assemblecoadd>
@@ -1009,13 +1009,13 @@ verify_files = False
 
                 filepat = hsc_tract_patch_filter
                 flabel = detectcoaddsources_md
-                fsuffix = boost
+                fsuffix = yaml
 
                 savefiles = false
                 compress_files = false
 
                 dirpat = hsc_tract_patch_filter
-                ops_outtype = boost
+                ops_outtype = md
                 job_outtype = detectCoaddSources_metadata
             </detectcoaddsources_md_boost>
         </file>
@@ -1429,13 +1429,13 @@ verify_files = False
 
                 filepat = hsc_tract_patch_filter
                 flabel = measurecoaddsources_md
-                fsuffix = boost
+                fsuffix = yaml
 
                 savefiles = false
                 compress_files = false
 
                 dirpat = hsc_tract_patch_filter
-                ops_outtype = boost
+                ops_outtype = md
                 job_outtype = measureCoaddSources_metadata
             </measurecoaddsources_md_boost>
         </file>
@@ -1655,13 +1655,13 @@ verify_files = False
 
                 filepat = hsc_tract_patch_filter
                 flabel = forcedphotcoadd_md
-                fsuffix = boost
+                fsuffix = yaml
 
                 savefiles = false
                 compress_files = false
 
                 dirpat = hsc_tract_patch_filter
-                ops_outtype = boost
+                ops_outtype = md
                 job_outtype = deepCoadd_forced_metadata
             </forcedphotcoadd_md_boost>
         </file>
@@ -1767,7 +1767,7 @@ verify_files = False
                 # where to put it
                 # %(pointing)05d/%(filter)s/tract%(tract)d/
                 dirpat = hsc_tract_patch_filter
-                ops_outtype = boost
+                ops_outtype = md
                 job_endir = tract${tract}
             </forced_src>
         </file>
